@@ -1,0 +1,150 @@
+{
+  "id": "validator.identity",
+  "version": "1.0.0",
+  "description": "Identity validator for Beast System 3.0. Ensures structural integrity, verification correctness, consent alignment, lifecycle consistency, and audit compliance.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "validationGroups": {
+    "structure": {
+      "description": "Ensures identity record contains required fields and valid formats.",
+      "rules": [
+        {
+          "id": "identity.required_fields",
+          "type": "required",
+          "fields": ["id", "createdAt", "coreAttributes"],
+          "error": "Missing required identity fields."
+        },
+        {
+          "id": "identity.core_attributes_valid",
+          "type": "schema",
+          "schemaRef": "identity.coreAttributes.schema",
+          "error": "Core identity attributes invalid."
+        }
+      ]
+    },
+
+    "verification": {
+      "description": "Ensures identity verification status is valid and consistent.",
+      "rules": [
+        {
+          "id": "identity.verification_status_valid",
+          "type": "enum",
+          "field": "verification.status",
+          "allowed": ["PENDING", "VERIFIED", "INVALID"],
+          "error": "Invalid verification status."
+        },
+        {
+          "id": "identity.verification_expiry_valid",
+          "type": "timestamp",
+          "field": "verification.expiresAt",
+          "error": "Verification expiry timestamp invalid."
+        }
+      ]
+    },
+
+    "consent": {
+      "description": "Ensures consent is present, valid, and up to date.",
+      "rules": [
+        {
+          "id": "consent.status_valid",
+          "type": "enum",
+          "field": "consent.status",
+          "allowed": ["PENDING", "CONFIRMED", "DENIED"],
+          "error": "Invalid consent status."
+        },
+        {
+          "id": "consent.timestamp_valid",
+          "type": "timestamp",
+          "field": "consent.updatedAt",
+          "error": "Consent timestamp invalid."
+        }
+      ]
+    },
+
+    "lifecycle": {
+      "description": "Ensures lifecycle state is valid and consistent with identity attributes.",
+      "rules": [
+        {
+          "id": "identity.lifecycle_valid",
+          "type": "enum",
+          "field": "lifecycle.state",
+          "allowed": [
+            "CREATED",
+            "PENDING_VERIFICATION",
+            "ACTIVE",
+            "SUSPENDED",
+            "EXITED",
+            "REACTIVATED",
+            "ARCHIVED",
+            "REJECTED"
+          ],
+          "error": "Invalid identity lifecycle state."
+        },
+        {
+          "id": "identity.lifecycle_consistency",
+          "type": "custom",
+          "handler": "identityLifecycleConsistencyCheck",
+          "error": "Lifecycle state inconsistent with identity attributes."
+        }
+      ]
+    },
+
+    "safety": {
+      "description": "Ensures identity is not in a contradictory or unsafe state.",
+      "rules": [
+        {
+          "id": "identity.safety_flags_valid",
+          "type": "enumList",
+          "field": "safety.flags",
+          "allowed": ["NONE", "RISK", "THREAT"],
+          "error": "Invalid safety flags."
+        }
+      ]
+    }
+  },
+
+  "evaluation": {
+    "mode": "deterministic",
+    "order": [
+      "structure",
+      "verification",
+      "consent",
+      "lifecycle",
+      "safety"
+    ],
+    "stopOnFailure": true
+  },
+
+  "outputs": {
+    "valid": {
+      "status": "VALID",
+      "emit": ["identity.validated"]
+    },
+    "invalid": {
+      "status": "INVALID",
+      "emit": ["identity.validation_failed"],
+      "includeErrors": true
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "identity.validation.started",
+        "identity.validation.completed",
+        "identity.validation.failed"
+      ]
+    }
+  },
+
+  "metadata": {
+    "validatorType": "identity",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Identity Standard"
+  }
+}
