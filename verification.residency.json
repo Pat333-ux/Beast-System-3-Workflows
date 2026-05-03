@@ -1,0 +1,109 @@
+{
+  "id": "verification.residency",
+  "version": "1.0.0",
+  "description": "Confirms residency information by validating address data, cross-referencing external sources, and ensuring consistency with identity records.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User arrives from verification.biometric.",
+      "transitions": ["COLLECT_RESIDENCY_DATA"]
+    },
+
+    "COLLECT_RESIDENCY_DATA": {
+      "description": "Collects residency information and supporting documents (if required).",
+      "validators": ["validator.document"],
+      "transitions": ["VALIDATE_ADDRESS", "REJECT"]
+    },
+
+    "VALIDATE_ADDRESS": {
+      "description": "Validates the provided address using internal and external verification sources.",
+      "validators": ["validator.document"],
+      "transitions": ["CROSS_REFERENCE_IDENTITY", "REJECT"]
+    },
+
+    "CROSS_REFERENCE_IDENTITY": {
+      "description": "Ensures residency information is consistent with verified identity attributes.",
+      "validators": ["validator.identity"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "REJECT": {
+      "description": "Residency verification failed. Workflow terminates.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Residency verification successful. Workflow hands off to verification.trust-score-init.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_COLLECT_RESIDENCY_DATA": {
+      "from": "START",
+      "to": "COLLECT_RESIDENCY_DATA",
+      "conditions": []
+    },
+
+    "COLLECT_RESIDENCY_DATA_TO_VALIDATE_ADDRESS": {
+      "from": "COLLECT_RESIDENCY_DATA",
+      "to": "VALIDATE_ADDRESS",
+      "conditions": ["residency.data_collected"]
+    },
+
+    "COLLECT_RESIDENCY_DATA_TO_REJECT": {
+      "from": "COLLECT_RESIDENCY_DATA",
+      "to": "REJECT",
+      "conditions": ["residency.data_missing"]
+    },
+
+    "VALIDATE_ADDRESS_TO_CROSS_REFERENCE_IDENTITY": {
+      "from": "VALIDATE_ADDRESS",
+      "to": "CROSS_REFERENCE_IDENTITY",
+      "conditions": ["address.valid"]
+    },
+
+    "VALIDATE_ADDRESS_TO_REJECT": {
+      "from": "VALIDATE_ADDRESS",
+      "to": "REJECT",
+      "conditions": ["address.invalid"]
+    },
+
+    "CROSS_REFERENCE_IDENTITY_TO_COMPLETE": {
+      "from": "CROSS_REFERENCE_IDENTITY",
+      "to": "COMPLETE",
+      "conditions": ["identity.residency_consistent"]
+    },
+
+    "CROSS_REFERENCE_IDENTITY_TO_REJECT": {
+      "from": "CROSS_REFERENCE_IDENTITY",
+      "to": "REJECT",
+      "conditions": ["identity.residency_inconsistent"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "verification.residency-data-collected",
+        "verification.address-validated",
+        "verification.residency-cross-referenced",
+        "verification.residency-complete"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "verification",
+    "nextWorkflow": "verification.trust-score-init",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
