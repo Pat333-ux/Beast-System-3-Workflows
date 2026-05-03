@@ -1,0 +1,154 @@
+{
+  "id": "escalation.critical",
+  "version": "1.0.0",
+  "description": "Critical-tier escalation workflow for severe issues requiring immediate intervention, containment measures, and high-level oversight.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when an issue exceeds elevated-tier capacity or presents significant risk.",
+      "transitions": ["RISK_TRIAGE"]
+    },
+
+    "RISK_TRIAGE": {
+      "description": "Performs rapid triage to determine severity, urgency, and containment requirements.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ISSUE_CONTAINMENT", "HIGH_ALERT_NOTICE", "REJECT"]
+    },
+
+    "ISSUE_CONTAINMENT": {
+      "description": "Implements immediate containment measures to prevent further harm or escalation.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ASSIGN_OVERSIGHT", "REJECT"]
+    },
+
+    "HIGH_ALERT_NOTICE": {
+      "description": "Issues a high-alert notice to designated oversight authorities with required details.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ASSIGN_OVERSIGHT", "REJECT"]
+    },
+
+    "ASSIGN_OVERSIGHT": {
+      "description": "Assigns high-level oversight personnel or automated supervisory systems to manage the case.",
+      "validators": ["validator.workflow"],
+      "transitions": ["MONITOR_AND_INTERVENE", "REJECT"]
+    },
+
+    "MONITOR_AND_INTERVENE": {
+      "description": "Conducts active monitoring and applies necessary interventions until stability is restored.",
+      "validators": ["validator.workflow"],
+      "transitions": ["RESOLVE", "REJECT"]
+    },
+
+    "RESOLVE": {
+      "description": "Issue resolved at the critical tier. Case may proceed to review tier if required.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Issue cannot be resolved at the critical tier and must be escalated to the review tier.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_RISK_TRIAGE": {
+      "from": "START",
+      "to": "RISK_TRIAGE",
+      "conditions": []
+    },
+
+    "RISK_TRIAGE_TO_ISSUE_CONTAINMENT": {
+      "from": "RISK_TRIAGE",
+      "to": "ISSUE_CONTAINMENT",
+      "conditions": ["risk.immediate_threat"]
+    },
+
+    "RISK_TRIAGE_TO_HIGH_ALERT_NOTICE": {
+      "from": "RISK_TRIAGE",
+      "to": "HIGH_ALERT_NOTICE",
+      "conditions": ["risk.high_severity"]
+    },
+
+    "RISK_TRIAGE_TO_REJECT": {
+      "from": "RISK_TRIAGE",
+      "to": "REJECT",
+      "conditions": ["risk.exceeds_critical_tier"]
+    },
+
+    "ISSUE_CONTAINMENT_TO_ASSIGN_OVERSIGHT": {
+      "from": "ISSUE_CONTAINMENT",
+      "to": "ASSIGN_OVERSIGHT",
+      "conditions": ["containment.established"]
+    },
+
+    "ISSUE_CONTAINMENT_TO_REJECT": {
+      "from": "ISSUE_CONTAINMENT",
+      "to": "REJECT",
+      "conditions": ["containment.failed"]
+    },
+
+    "HIGH_ALERT_NOTICE_TO_ASSIGN_OVERSIGHT": {
+      "from": "HIGH_ALERT_NOTICE",
+      "to": "ASSIGN_OVERSIGHT",
+      "conditions": ["notice.issued"]
+    },
+
+    "HIGH_ALERT_NOTICE_TO_REJECT": {
+      "from": "HIGH_ALERT_NOTICE",
+      "to": "REJECT",
+      "conditions": ["notice.failed"]
+    },
+
+    "ASSIGN_OVERSIGHT_TO_MONITOR_AND_INTERVENE": {
+      "from": "ASSIGN_OVERSIGHT",
+      "to": "MONITOR_AND_INTERVENE",
+      "conditions": ["oversight.assigned"]
+    },
+
+    "ASSIGN_OVERSIGHT_TO_REJECT": {
+      "from": "ASSIGN_OVERSIGHT",
+      "to": "REJECT",
+      "conditions": ["oversight.assignment_failed"]
+    },
+
+    "MONITOR_AND_INTERVENE_TO_RESOLVE": {
+      "from": "MONITOR_AND_INTERVENE",
+      "to": "RESOLVE",
+      "conditions": ["stability.restored"]
+    },
+
+    "MONITOR_AND_INTERVENE_TO_REJECT": {
+      "from": "MONITOR_AND_INTERVENE",
+      "to": "REJECT",
+      "conditions": ["stability.not_restored"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "escalation.critical.risk-triage",
+        "escalation.critical.containment",
+        "escalation.critical.high-alert",
+        "escalation.critical.oversight-assigned",
+        "escalation.critical.monitoring",
+        "escalation.critical.resolved",
+        "escalation.critical.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "tier": "critical",
+    "workflowType": "escalation",
+    "nextWorkflow": "escalation.review",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
