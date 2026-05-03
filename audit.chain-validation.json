@@ -1,0 +1,148 @@
+{
+  "id": "audit.chain-validation",
+  "version": "1.0.0",
+  "description": "Validates the integrity, continuity, and cryptographic correctness of the audit chain. Ensures hash linkage, signature validity, chronological order, and anchoring compliance.",
+  "domain": "audit",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when an audit chain requires validation or during scheduled integrity checks.",
+      "transitions": ["LOAD_CHAIN"]
+    },
+
+    "LOAD_CHAIN": {
+      "description": "Loads the audit chain, entries, and metadata for validation.",
+      "validators": ["validator.audit"],
+      "transitions": ["VALIDATE_STRUCTURE", "REJECT"]
+    },
+
+    "VALIDATE_STRUCTURE": {
+      "description": "Validates structural correctness: required fields, ordering, entry count, and schema compliance.",
+      "validators": ["validator.audit"],
+      "transitions": ["VALIDATE_HASH_LINKS", "REJECT"]
+    },
+
+    "VALIDATE_HASH_LINKS": {
+      "description": "Validates hash continuity between entries and verifies the chain's currentChainHash.",
+      "validators": ["validator.crypto"],
+      "transitions": ["VALIDATE_SIGNATURES", "REJECT"]
+    },
+
+    "VALIDATE_SIGNATURES": {
+      "description": "Validates digital signatures for each entry using the chain's signature algorithm.",
+      "validators": ["validator.crypto"],
+      "transitions": ["VALIDATE_ANCHORING", "REJECT"]
+    },
+
+    "VALIDATE_ANCHORING": {
+      "description": "Validates anchoring strategy (immediate, batch, scheduled) and ensures registry anchors match chain state.",
+      "validators": ["validator.audit"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Audit chain successfully validated. Integrity confirmed.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Audit chain validation failed due to structural, cryptographic, or anchoring inconsistencies.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_LOAD_CHAIN": {
+      "from": "START",
+      "to": "LOAD_CHAIN",
+      "conditions": []
+    },
+
+    "LOAD_CHAIN_TO_VALIDATE_STRUCTURE": {
+      "from": "LOAD_CHAIN",
+      "to": "VALIDATE_STRUCTURE",
+      "conditions": ["chain.loaded"]
+    },
+
+    "LOAD_CHAIN_TO_REJECT": {
+      "from": "LOAD_CHAIN",
+      "to": "REJECT",
+      "conditions": ["chain.load_failed"]
+    },
+
+    "VALIDATE_STRUCTURE_TO_VALIDATE_HASH_LINKS": {
+      "from": "VALIDATE_STRUCTURE",
+      "to": "VALIDATE_HASH_LINKS",
+      "conditions": ["structure.valid"]
+    },
+
+    "VALIDATE_STRUCTURE_TO_REJECT": {
+      "from": "VALIDATE_STRUCTURE",
+      "to": "REJECT",
+      "conditions": ["structure.invalid"]
+    },
+
+    "VALIDATE_HASH_LINKS_TO_VALIDATE_SIGNATURES": {
+      "from": "VALIDATE_HASH_LINKS",
+      "to": "VALIDATE_SIGNATURES",
+      "conditions": ["hash_links.valid"]
+    },
+
+    "VALIDATE_HASH_LINKS_TO_REJECT": {
+      "from": "VALIDATE_HASH_LINKS",
+      "to": "REJECT",
+      "conditions": ["hash_links.invalid"]
+    },
+
+    "VALIDATE_SIGNATURES_TO_VALIDATE_ANCHORING": {
+      "from": "VALIDATE_SIGNATURES",
+      "to": "VALIDATE_ANCHORING",
+      "conditions": ["signatures.valid"]
+    },
+
+    "VALIDATE_SIGNATURES_TO_REJECT": {
+      "from": "VALIDATE_SIGNATURES",
+      "to": "REJECT",
+      "conditions": ["signatures.invalid"]
+    },
+
+    "VALIDATE_ANCHORING_TO_COMPLETE": {
+      "from": "VALIDATE_ANCHORING",
+      "to": "COMPLETE",
+      "conditions": ["anchoring.valid"]
+    },
+
+    "VALIDATE_ANCHORING_TO_REJECT": {
+      "from": "VALIDATE_ANCHORING",
+      "to": "REJECT",
+      "conditions": ["anchoring.invalid"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "audit.chain-validation.chain-loaded",
+        "audit.chain-validation.structure-validated",
+        "audit.chain-validation.hash-links-validated",
+        "audit.chain-validation.signatures-validated",
+        "audit.chain-validation.anchoring-validated",
+        "audit.chain-validation.complete",
+        "audit.chain-validation.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "audit",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Audit Standard"
+  }
+}
