@@ -1,0 +1,168 @@
+{
+  "id": "validator.document",
+  "version": "1.0.0",
+  "description": "Document validator for Beast System 3.0. Ensures structural integrity, authenticity, completeness, expiration validity, and audit compliance for all submitted documents.",
+  "domain": "verification",
+  "lastUpdated": "2026-05-03",
+
+  "validationGroups": {
+    "structure": {
+      "description": "Ensures the document object contains required fields and valid formats.",
+      "rules": [
+        {
+          "id": "document.required_fields",
+          "type": "required",
+          "fields": ["id", "type", "issuedAt", "expiresAt", "payload"],
+          "error": "Missing required document fields."
+        },
+        {
+          "id": "document.type_valid",
+          "type": "enum",
+          "field": "type",
+          "allowed": [
+            "GOV_ID",
+            "DRIVER_LICENSE",
+            "PASSPORT",
+            "BIRTH_CERTIFICATE",
+            "UTILITY_BILL",
+            "LEASE",
+            "TAX_DOCUMENT",
+            "OTHER"
+          ],
+          "error": "Invalid document type."
+        }
+      ]
+    },
+
+    "authenticity": {
+      "description": "Ensures the document is authentic, unaltered, and cryptographically consistent.",
+      "rules": [
+        {
+          "id": "document.hash_valid",
+          "type": "hash",
+          "field": "payload",
+          "hashField": "hash",
+          "error": "Document hash mismatch."
+        },
+        {
+          "id": "document.signature_valid",
+          "type": "signature",
+          "field": "signature",
+          "error": "Document signature invalid."
+        }
+      ]
+    },
+
+    "completeness": {
+      "description": "Ensures the document contains all required subfields for its type.",
+      "rules": [
+        {
+          "id": "document.payload_schema_valid",
+          "type": "schema",
+          "schemaRef": "document.payload.schema",
+          "error": "Document payload schema invalid."
+        }
+      ]
+    },
+
+    "expiration": {
+      "description": "Ensures the document is not expired and has valid temporal metadata.",
+      "rules": [
+        {
+          "id": "document.issuedAt_valid",
+          "type": "timestamp",
+          "field": "issuedAt",
+          "error": "Invalid issuedAt timestamp."
+        },
+        {
+          "id": "document.expiresAt_valid",
+          "type": "timestamp",
+          "field": "expiresAt",
+          "error": "Invalid expiresAt timestamp."
+        },
+        {
+          "id": "document.not_expired",
+          "type": "custom",
+          "handler": "documentNotExpiredCheck",
+          "error": "Document is expired."
+        }
+      ]
+    },
+
+    "consistency": {
+      "description": "Ensures cross-field consistency between document data and identity data.",
+      "rules": [
+        {
+          "id": "document.identity_match",
+          "type": "custom",
+          "handler": "documentIdentityConsistencyCheck",
+          "error": "Document identity fields inconsistent with user identity."
+        }
+      ]
+    },
+
+    "fraudSignals": {
+      "description": "Detects fraud indicators, tampering, or suspicious metadata.",
+      "rules": [
+        {
+          "id": "document.fraud_flags_valid",
+          "type": "enumList",
+          "field": "fraud.flags",
+          "allowed": ["NONE", "LOW", "MEDIUM", "HIGH"],
+          "error": "Invalid fraud flags."
+        },
+        {
+          "id": "document.no_high_risk_fraud",
+          "type": "custom",
+          "handler": "documentFraudRiskCheck",
+          "error": "High-risk fraud indicators detected."
+        }
+      ]
+    }
+  },
+
+  "evaluation": {
+    "mode": "deterministic",
+    "order": [
+      "structure",
+      "authenticity",
+      "completeness",
+      "expiration",
+      "consistency",
+      "fraudSignals"
+    ],
+    "stopOnFailure": true
+  },
+
+  "outputs": {
+    "valid": {
+      "status": "VALID",
+      "emit": ["document.validated"]
+    },
+    "invalid": {
+      "status": "INVALID",
+      "emit": ["document.validation_failed"],
+      "includeErrors": true
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "document.validation.started",
+        "document.validation.completed",
+        "document.validation.failed"
+      ]
+    }
+  },
+
+  "metadata": {
+    "validatorType": "document",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Verification Standard"
+  }
+}
