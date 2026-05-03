@@ -1,0 +1,109 @@
+{
+  "id": "onboarding.initial-assessment",
+  "version": "1.0.0",
+  "description": "Conducts the user's initial assessment after profile creation. Establishes baseline wellbeing, risk indicators, and support needs.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User arrives from onboarding.profile-creation.",
+      "transitions": ["COLLECT_BASELINE_DATA"]
+    },
+
+    "COLLECT_BASELINE_DATA": {
+      "description": "Collects initial wellbeing, stability, and environmental data.",
+      "validators": ["validator.workflow"],
+      "transitions": ["EVALUATE_RISK", "REJECT"]
+    },
+
+    "EVALUATE_RISK": {
+      "description": "Evaluates risk indicators based on baseline data.",
+      "validators": ["validator.score"],
+      "transitions": ["ASSIGN_SUPPORT_LEVEL", "REJECT"]
+    },
+
+    "ASSIGN_SUPPORT_LEVEL": {
+      "description": "Assigns a default support level (low, moderate, elevated) based on risk evaluation.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "REJECT": {
+      "description": "Assessment failed or insufficient data. Workflow terminates.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Initial assessment complete. Workflow hands off to onboarding.welcome-sequence.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_COLLECT_BASELINE_DATA": {
+      "from": "START",
+      "to": "COLLECT_BASELINE_DATA",
+      "conditions": []
+    },
+
+    "COLLECT_BASELINE_DATA_TO_EVALUATE_RISK": {
+      "from": "COLLECT_BASELINE_DATA",
+      "to": "EVALUATE_RISK",
+      "conditions": ["baseline.collected"]
+    },
+
+    "COLLECT_BASELINE_DATA_TO_REJECT": {
+      "from": "COLLECT_BASELINE_DATA",
+      "to": "REJECT",
+      "conditions": ["baseline.failed"]
+    },
+
+    "EVALUATE_RISK_TO_ASSIGN_SUPPORT_LEVEL": {
+      "from": "EVALUATE_RISK",
+      "to": "ASSIGN_SUPPORT_LEVEL",
+      "conditions": ["risk.evaluated"]
+    },
+
+    "EVALUATE_RISK_TO_REJECT": {
+      "from": "EVALUATE_RISK",
+      "to": "REJECT",
+      "conditions": ["risk.invalid"]
+    },
+
+    "ASSIGN_SUPPORT_LEVEL_TO_COMPLETE": {
+      "from": "ASSIGN_SUPPORT_LEVEL",
+      "to": "COMPLETE",
+      "conditions": ["support.level_assigned"]
+    },
+
+    "ASSIGN_SUPPORT_LEVEL_TO_REJECT": {
+      "from": "ASSIGN_SUPPORT_LEVEL",
+      "to": "REJECT",
+      "conditions": ["support.assignment_failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "assessment.baseline-collected",
+        "assessment.risk-evaluated",
+        "assessment.support-level-assigned",
+        "assessment.complete"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "assessment",
+    "nextWorkflow": "onboarding.welcome-sequence",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
