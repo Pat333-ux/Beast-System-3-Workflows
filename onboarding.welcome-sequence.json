@@ -1,0 +1,109 @@
+{
+  "id": "onboarding.welcome-sequence",
+  "version": "1.0.0",
+  "description": "Executes the structured welcome sequence after initial assessment. Introduces the user to system expectations, rights, responsibilities, and provides orientation resources.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User arrives from onboarding.initial-assessment.",
+      "transitions": ["DISPLAY_WELCOME"]
+    },
+
+    "DISPLAY_WELCOME": {
+      "description": "Presents the welcome message, system overview, and orientation introduction.",
+      "validators": ["validator.workflow"],
+      "transitions": ["PRESENT_RIGHTS_AND_RESPONSIBILITIES", "REJECT"]
+    },
+
+    "PRESENT_RIGHTS_AND_RESPONSIBILITIES": {
+      "description": "Displays user rights, responsibilities, and system participation expectations.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ORIENTATION_RESOURCES", "REJECT"]
+    },
+
+    "ORIENTATION_RESOURCES": {
+      "description": "Provides access to orientation materials, guides, and support channels.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "REJECT": {
+      "description": "Welcome sequence failed or user unable to proceed. Workflow terminates.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Welcome sequence complete. Workflow hands off to onboarding.complete.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_DISPLAY_WELCOME": {
+      "from": "START",
+      "to": "DISPLAY_WELCOME",
+      "conditions": []
+    },
+
+    "DISPLAY_WELCOME_TO_PRESENT_RIGHTS_AND_RESPONSIBILITIES": {
+      "from": "DISPLAY_WELCOME",
+      "to": "PRESENT_RIGHTS_AND_RESPONSIBILITIES",
+      "conditions": ["welcome.displayed"]
+    },
+
+    "DISPLAY_WELCOME_TO_REJECT": {
+      "from": "DISPLAY_WELCOME",
+      "to": "REJECT",
+      "conditions": ["welcome.failed"]
+    },
+
+    "PRESENT_RIGHTS_AND_RESPONSIBILITIES_TO_ORIENTATION_RESOURCES": {
+      "from": "PRESENT_RIGHTS_AND_RESPONSIBILITIES",
+      "to": "ORIENTATION_RESOURCES",
+      "conditions": ["rights_acknowledged"]
+    },
+
+    "PRESENT_RIGHTS_AND_RESPONSIBILITIES_TO_REJECT": {
+      "from": "PRESENT_RIGHTS_AND_RESPONSIBILITIES",
+      "to": "REJECT",
+      "conditions": ["rights.unacknowledged"]
+    },
+
+    "ORIENTATION_RESOURCES_TO_COMPLETE": {
+      "from": "ORIENTATION_RESOURCES",
+      "to": "COMPLETE",
+      "conditions": ["orientation.accessed"]
+    },
+
+    "ORIENTATION_RESOURCES_TO_REJECT": {
+      "from": "ORIENTATION_RESOURCES",
+      "to": "REJECT",
+      "conditions": ["orientation.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "standard"
+    },
+    "audit": {
+      "captureEvents": [
+        "welcome.displayed",
+        "welcome.rights-presented",
+        "welcome.orientation-accessed",
+        "welcome.sequence-complete"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "orientation",
+    "nextWorkflow": "onboarding.complete",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
