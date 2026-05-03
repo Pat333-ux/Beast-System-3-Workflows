@@ -1,0 +1,151 @@
+{
+  "id": "user.state-machine",
+  "version": "1.0.0",
+  "description": "Deterministic state-machine governing all valid transitions in the user lifecycle. Enforces identity integrity, consent, safety, and audit compliance.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": [
+    "CREATED",
+    "PENDING_VERIFICATION",
+    "ACTIVE",
+    "SUSPENDED",
+    "EXITED",
+    "REACTIVATED",
+    "ARCHIVED",
+    "REJECTED"
+  ],
+
+  "transitions": {
+    "CREATED": {
+      "allowed": ["PENDING_VERIFICATION", "ARCHIVED"],
+      "prohibited": ["ACTIVE", "SUSPENDED", "EXITED", "REACTIVATED", "REJECTED"],
+      "conditions": {
+        "PENDING_VERIFICATION": ["identity.initialized"],
+        "ARCHIVED": ["identity.abandoned"]
+      }
+    },
+
+    "PENDING_VERIFICATION": {
+      "allowed": ["ACTIVE", "REJECTED", "ARCHIVED"],
+      "prohibited": ["SUSPENDED", "EXITED", "REACTIVATED"],
+      "conditions": {
+        "ACTIVE": ["identity.verified", "consent.confirmed"],
+        "REJECTED": ["identity.invalid", "consent.denied"],
+        "ARCHIVED": ["identity.expired"]
+      }
+    },
+
+    "ACTIVE": {
+      "allowed": ["SUSPENDED", "EXITED", "ARCHIVED"],
+      "prohibited": ["PENDING_VERIFICATION", "REACTIVATED", "REJECTED"],
+      "conditions": {
+        "SUSPENDED": ["safety.concern", "wellbeing.risk_detected"],
+        "EXITED": ["user.request_exit"],
+        "ARCHIVED": ["identity.retired"]
+      }
+    },
+
+    "SUSPENDED": {
+      "allowed": ["ACTIVE", "EXITED", "ARCHIVED"],
+      "prohibited": ["PENDING_VERIFICATION", "REACTIVATED", "REJECTED"],
+      "conditions": {
+        "ACTIVE": ["safety.resolved", "wellbeing.stable"],
+        "EXITED": ["user.request_exit"],
+        "ARCHIVED": ["identity.retired"]
+      }
+    },
+
+    "EXITED": {
+      "allowed": ["REACTIVATED", "ARCHIVED"],
+      "prohibited": ["ACTIVE", "SUSPENDED", "PENDING_VERIFICATION", "REJECTED"],
+      "conditions": {
+        "REACTIVATED": ["user.request_reactivation"],
+        "ARCHIVED": ["identity.retired"]
+      }
+    },
+
+    "REACTIVATED": {
+      "allowed": ["ACTIVE", "ARCHIVED"],
+      "prohibited": ["SUSPENDED", "EXITED", "REJECTED"],
+      "conditions": {
+        "ACTIVE": ["consent.updated", "wellbeing.baseline_completed"],
+        "ARCHIVED": ["identity.retired"]
+      }
+    },
+
+    "ARCHIVED": {
+      "allowed": [],
+      "prohibited": ["CREATED", "PENDING_VERIFICATION", "ACTIVE", "SUSPENDED", "EXITED", "REACTIVATED", "REJECTED"],
+      "conditions": {}
+    },
+
+    "REJECTED": {
+      "allowed": [],
+      "prohibited": ["CREATED", "PENDING_VERIFICATION", "ACTIVE", "SUSPENDED", "EXITED", "REACTIVATED", "ARCHIVED"],
+      "conditions": {}
+    }
+  },
+
+  "validators": {
+    "identity": [
+      "identity.initialized",
+      "identity.verified",
+      "identity.invalid",
+      "identity.retired",
+      "identity.expired"
+    ],
+    "consent": [
+      "consent.confirmed",
+      "consent.denied",
+      "consent.updated"
+    ],
+    "safety": [
+      "safety.concern",
+      "safety.resolved"
+    ],
+    "wellbeing": [
+      "wellbeing.risk_detected",
+      "wellbeing.stable",
+      "wellbeing.baseline_completed"
+    ]
+  },
+
+  "events": {
+    "onEnter": {
+      "CREATED": ["user.lifecycle.created"],
+      "PENDING_VERIFICATION": ["user.lifecycle.verification-started"],
+      "ACTIVE": ["user.lifecycle.activated"],
+      "SUSPENDED": ["user.lifecycle.suspended"],
+      "EXITED": ["user.lifecycle.exited"],
+      "REACTIVATED": ["user.lifecycle.reactivated"],
+      "ARCHIVED": ["user.lifecycle.archived"],
+      "REJECTED": ["user.lifecycle.rejected"]
+    },
+    "onExit": {
+      "ACTIVE": ["user.lifecycle.deactivated"],
+      "SUSPENDED": ["user.lifecycle.suspension-ended"],
+      "EXITED": ["user.lifecycle.exit-closed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "user.state.transition",
+        "user.state.invalid-transition",
+        "user.state-machine.violation"
+      ]
+    }
+  },
+
+  "metadata": {
+    "machineType": "deterministic",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Identity Standard"
+  }
+}
