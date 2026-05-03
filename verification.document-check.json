@@ -1,0 +1,109 @@
+{
+  "id": "verification.document-check",
+  "version": "1.0.0",
+  "description": "Performs document authenticity, completeness, and validity checks as the first stage of the verification workflow.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User arrives from onboarding or another verification workflow.",
+      "transitions": ["COLLECT_DOCUMENTS"]
+    },
+
+    "COLLECT_DOCUMENTS": {
+      "description": "Collects user-submitted identity documents and prepares them for validation.",
+      "validators": ["validator.document"],
+      "transitions": ["VALIDATE_DOCUMENTS", "REJECT"]
+    },
+
+    "VALIDATE_DOCUMENTS": {
+      "description": "Performs authenticity checks, metadata validation, and cross-referencing.",
+      "validators": ["validator.document"],
+      "transitions": ["CHECK_COMPLETENESS", "REJECT"]
+    },
+
+    "CHECK_COMPLETENESS": {
+      "description": "Ensures all required documents are present and meet minimum quality standards.",
+      "validators": ["validator.document"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "REJECT": {
+      "description": "Document verification failed. Workflow terminates.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Document verification successful. Workflow hands off to verification.biometric.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_COLLECT_DOCUMENTS": {
+      "from": "START",
+      "to": "COLLECT_DOCUMENTS",
+      "conditions": []
+    },
+
+    "COLLECT_DOCUMENTS_TO_VALIDATE_DOCUMENTS": {
+      "from": "COLLECT_DOCUMENTS",
+      "to": "VALIDATE_DOCUMENTS",
+      "conditions": ["documents.collected"]
+    },
+
+    "COLLECT_DOCUMENTS_TO_REJECT": {
+      "from": "COLLECT_DOCUMENTS",
+      "to": "REJECT",
+      "conditions": ["documents.missing"]
+    },
+
+    "VALIDATE_DOCUMENTS_TO_CHECK_COMPLETENESS": {
+      "from": "VALIDATE_DOCUMENTS",
+      "to": "CHECK_COMPLETENESS",
+      "conditions": ["documents.valid"]
+    },
+
+    "VALIDATE_DOCUMENTS_TO_REJECT": {
+      "from": "VALIDATE_DOCUMENTS",
+      "to": "REJECT",
+      "conditions": ["documents.invalid"]
+    },
+
+    "CHECK_COMPLETENESS_TO_COMPLETE": {
+      "from": "CHECK_COMPLETENESS",
+      "to": "COMPLETE",
+      "conditions": ["documents.complete"]
+    },
+
+    "CHECK_COMPLETENESS_TO_REJECT": {
+      "from": "CHECK_COMPLETENESS",
+      "to": "REJECT",
+      "conditions": ["documents.incomplete"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "verification.documents-collected",
+        "verification.documents-validated",
+        "verification.documents-complete",
+        "verification.document-check-complete"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "verification",
+    "nextWorkflow": "verification.biometric",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
