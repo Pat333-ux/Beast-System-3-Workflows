@@ -1,0 +1,162 @@
+{
+  "id": "case.state-machine",
+  "version": "1.0.0",
+  "description": "Deterministic state-machine governing all valid transitions in the case lifecycle. Enforces trauma-preventive routing, safety, audit compliance, and non-punitive governance.",
+  "domain": "governance",
+  "lastUpdated": "2026-05-03",
+
+  "states": [
+    "INTAKE",
+    "CLASSIFICATION",
+    "ASSESSMENT",
+    "STEWARDSHIP_ACTION",
+    "REVIEW",
+    "ESCALATED",
+    "CLOSURE",
+    "ARCHIVED",
+    "REJECTED"
+  ],
+
+  "transitions": {
+    "INTAKE": {
+      "allowed": ["CLASSIFICATION", "ARCHIVED"],
+      "prohibited": ["ASSESSMENT", "STEWARDSHIP_ACTION", "REVIEW", "ESCALATED", "CLOSURE", "REJECTED"],
+      "conditions": {
+        "CLASSIFICATION": ["case.initialized"],
+        "ARCHIVED": ["case.abandoned"]
+      }
+    },
+
+    "CLASSIFICATION": {
+      "allowed": ["ASSESSMENT", "REJECTED", "ARCHIVED"],
+      "prohibited": ["STEWARDSHIP_ACTION", "REVIEW", "ESCALATED", "CLOSURE"],
+      "conditions": {
+        "ASSESSMENT": ["case.classified"],
+        "REJECTED": ["case.invalid"],
+        "ARCHIVED": ["case.expired"]
+      }
+    },
+
+    "ASSESSMENT": {
+      "allowed": ["STEWARDSHIP_ACTION", "ESCALATED", "REJECTED"],
+      "prohibited": ["CLASSIFICATION", "CLOSURE", "ARCHIVED"],
+      "conditions": {
+        "STEWARDSHIP_ACTION": ["assessment.completed"],
+        "ESCALATED": ["assessment.risk_detected"],
+        "REJECTED": ["assessment.invalid"]
+      }
+    },
+
+    "STEWARDSHIP_ACTION": {
+      "allowed": ["REVIEW", "ESCALATED", "REJECTED"],
+      "prohibited": ["CLASSIFICATION", "CLOSURE", "ARCHIVED"],
+      "conditions": {
+        "REVIEW": ["action.completed"],
+        "ESCALATED": ["action.escalation_required"],
+        "REJECTED": ["action.invalid"]
+      }
+    },
+
+    "REVIEW": {
+      "allowed": ["CLOSURE", "STEWARDSHIP_ACTION", "ESCALATED", "REJECTED"],
+      "prohibited": ["INTAKE", "CLASSIFICATION", "ASSESSMENT"],
+      "conditions": {
+        "CLOSURE": ["review.resolved"],
+        "STEWARDSHIP_ACTION": ["review.needs_more_action"],
+        "ESCALATED": ["review.escalation_required"],
+        "REJECTED": ["review.invalid"]
+      }
+    },
+
+    "ESCALATED": {
+      "allowed": ["REVIEW", "CLOSURE", "ARCHIVED"],
+      "prohibited": ["INTAKE", "CLASSIFICATION", "ASSESSMENT", "STEWARDSHIP_ACTION"],
+      "conditions": {
+        "REVIEW": ["escalation.resolved"],
+        "CLOSURE": ["escalation.completed"],
+        "ARCHIVED": ["escalation.terminal"]
+      }
+    },
+
+    "CLOSURE": {
+      "allowed": ["ARCHIVED"],
+      "prohibited": ["INTAKE", "CLASSIFICATION", "ASSESSMENT", "STEWARDSHIP_ACTION", "REVIEW", "ESCALATED", "REJECTED"],
+      "conditions": {
+        "ARCHIVED": ["closure.finalized"]
+      }
+    },
+
+    "ARCHIVED": {
+      "allowed": [],
+      "prohibited": ["INTAKE", "CLASSIFICATION", "ASSESSMENT", "STEWARDSHIP_ACTION", "REVIEW", "ESCALATED", "CLOSURE", "REJECTED"],
+      "conditions": {}
+    },
+
+    "REJECTED": {
+      "allowed": [],
+      "prohibited": ["INTAKE", "CLASSIFICATION", "ASSESSMENT", "STEWARDSHIP_ACTION", "REVIEW", "ESCALATED", "CLOSURE", "ARCHIVED"],
+      "conditions": {}
+    }
+  },
+
+  "validators": {
+    "case": [
+      "case.initialized",
+      "case.classified",
+      "case.invalid",
+      "case.expired",
+      "assessment.completed",
+      "assessment.risk_detected",
+      "assessment.invalid",
+      "action.completed",
+      "action.escalation_required",
+      "action.invalid",
+      "review.resolved",
+      "review.needs_more_action",
+      "review.escalation_required",
+      "review.invalid",
+      "escalation.resolved",
+      "escalation.completed",
+      "escalation.terminal",
+      "closure.finalized"
+    ]
+  },
+
+  "events": {
+    "onEnter": {
+      "INTAKE": ["case.lifecycle.intake"],
+      "CLASSIFICATION": ["case.lifecycle.classified"],
+      "ASSESSMENT": ["case.lifecycle.assessed"],
+      "STEWARDSHIP_ACTION": ["case.lifecycle.action"],
+      "REVIEW": ["case.lifecycle.review"],
+      "ESCALATED": ["case.lifecycle.escalated"],
+      "CLOSURE": ["case.lifecycle.closed"],
+      "ARCHIVED": ["case.lifecycle.archived"],
+      "REJECTED": ["case.lifecycle.rejected"]
+    },
+    "onExit": {
+      "STEWARDSHIP_ACTION": ["case.lifecycle.action-exited"],
+      "ESCALATED": ["case.lifecycle.escalation-exited"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "case.state.transition",
+        "case.state.invalid-transition",
+        "case.state-machine.violation"
+      ]
+    }
+  },
+
+  "metadata": {
+    "machineType": "deterministic",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Governance Standard"
+  }
+}
