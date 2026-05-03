@@ -1,0 +1,90 @@
+{
+  "id": "onboarding.complete",
+  "version": "1.0.0",
+  "description": "Finalizes the onboarding workflow. Confirms successful completion of all prior onboarding stages and transitions the user into active system status.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User arrives from onboarding.welcome-sequence.",
+      "transitions": ["FINAL_CONFIRMATION"]
+    },
+
+    "FINAL_CONFIRMATION": {
+      "description": "Performs final validation ensuring all onboarding stages were successfully completed.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ACTIVATE_USER", "REJECT"]
+    },
+
+    "ACTIVATE_USER": {
+      "description": "Activates the user account, updates lifecycle state, and marks onboarding as complete.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "REJECT": {
+      "description": "Finalization failed. Workflow terminates.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Onboarding fully complete. User is now active in the system.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_FINAL_CONFIRMATION": {
+      "from": "START",
+      "to": "FINAL_CONFIRMATION",
+      "conditions": []
+    },
+
+    "FINAL_CONFIRMATION_TO_ACTIVATE_USER": {
+      "from": "FINAL_CONFIRMATION",
+      "to": "ACTIVATE_USER",
+      "conditions": ["onboarding.all_stages_complete"]
+    },
+
+    "FINAL_CONFIRMATION_TO_REJECT": {
+      "from": "FINAL_CONFIRMATION",
+      "to": "REJECT",
+      "conditions": ["onboarding.incomplete"]
+    },
+
+    "ACTIVATE_USER_TO_COMPLETE": {
+      "from": "ACTIVATE_USER",
+      "to": "COMPLETE",
+      "conditions": ["user.activated"]
+    },
+
+    "ACTIVATE_USER_TO_REJECT": {
+      "from": "ACTIVATE_USER",
+      "to": "REJECT",
+      "conditions": ["activation.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "standard"
+    },
+    "audit": {
+      "captureEvents": [
+        "onboarding.final-confirmation",
+        "onboarding.user-activated",
+        "onboarding.complete"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "completion",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
