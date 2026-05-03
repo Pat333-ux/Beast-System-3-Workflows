@@ -1,0 +1,171 @@
+{
+  "id": "user.lifecycle",
+  "version": "1.0.0",
+  "description": "Defines the full lifecycle of a user within the Beast System 3.0 governance engine, from creation to archival. Ensures dignity-preserving, non-punitive transitions and audit-ready state changes.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "CREATED": {
+      "description": "User record created with minimal identity attributes. No activation yet.",
+      "transitions": ["PENDING_VERIFICATION", "ARCHIVED"]
+    },
+
+    "PENDING_VERIFICATION": {
+      "description": "User awaits identity verification, consent confirmation, and rights acknowledgment.",
+      "validators": ["validator.identity"],
+      "transitions": ["ACTIVE", "REJECTED", "ARCHIVED"]
+    },
+
+    "ACTIVE": {
+      "description": "User is fully active in the system with access to community, wellbeing, and governance workflows.",
+      "transitions": ["SUSPENDED", "EXITED", "ARCHIVED"]
+    },
+
+    "SUSPENDED": {
+      "description": "User temporarily paused due to safety, wellbeing, or administrative reasons. Non-punitive and reversible.",
+      "validators": ["validator.identity"],
+      "transitions": ["ACTIVE", "EXITED", "ARCHIVED"]
+    },
+
+    "EXITED": {
+      "description": "User has voluntarily or administratively exited the system. Limited access; record remains intact.",
+      "validators": ["validator.identity"],
+      "transitions": ["REACTIVATED", "ARCHIVED"]
+    },
+
+    "REACTIVATED": {
+      "description": "User re-enters the system after exit. Requires updated consent and wellbeing baseline.",
+      "validators": ["validator.identity"],
+      "transitions": ["ACTIVE", "ARCHIVED"]
+    },
+
+    "ARCHIVED": {
+      "description": "User record sealed and preserved for audit and historical continuity. Terminal state.",
+      "terminal": true
+    },
+
+    "REJECTED": {
+      "description": "User identity could not be verified or consent not granted. Record sealed but not activated.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "CREATED_TO_PENDING_VERIFICATION": {
+      "from": "CREATED",
+      "to": "PENDING_VERIFICATION",
+      "conditions": ["identity.initialized"]
+    },
+
+    "CREATED_TO_ARCHIVED": {
+      "from": "CREATED",
+      "to": "ARCHIVED",
+      "conditions": ["identity.abandoned"]
+    },
+
+    "PENDING_VERIFICATION_TO_ACTIVE": {
+      "from": "PENDING_VERIFICATION",
+      "to": "ACTIVE",
+      "conditions": ["identity.verified", "consent.confirmed"]
+    },
+
+    "PENDING_VERIFICATION_TO_REJECTED": {
+      "from": "PENDING_VERIFICATION",
+      "to": "REJECTED",
+      "conditions": ["identity.invalid", "consent.denied"]
+    },
+
+    "PENDING_VERIFICATION_TO_ARCHIVED": {
+      "from": "PENDING_VERIFICATION",
+      "to": "ARCHIVED",
+      "conditions": ["identity.expired"]
+    },
+
+    "ACTIVE_TO_SUSPENDED": {
+      "from": "ACTIVE",
+      "to": "SUSPENDED",
+      "conditions": ["safety.concern", "wellbeing.risk_detected"]
+    },
+
+    "ACTIVE_TO_EXITED": {
+      "from": "ACTIVE",
+      "to": "EXITED",
+      "conditions": ["user.request_exit"]
+    },
+
+    "ACTIVE_TO_ARCHIVED": {
+      "from": "ACTIVE",
+      "to": "ARCHIVED",
+      "conditions": ["identity.retired"]
+    },
+
+    "SUSPENDED_TO_ACTIVE": {
+      "from": "SUSPENDED",
+      "to": "ACTIVE",
+      "conditions": ["safety.resolved", "wellbeing.stable"]
+    },
+
+    "SUSPENDED_TO_EXITED": {
+      "from": "SUSPENDED",
+      "to": "EXITED",
+      "conditions": ["user.request_exit"]
+    },
+
+    "SUSPENDED_TO_ARCHIVED": {
+      "from": "SUSPENDED",
+      "to": "ARCHIVED",
+      "conditions": ["identity.retired"]
+    },
+
+    "EXITED_TO_REACTIVATED": {
+      "from": "EXITED",
+      "to": "REACTIVATED",
+      "conditions": ["user.request_reactivation"]
+    },
+
+    "EXITED_TO_ARCHIVED": {
+      "from": "EXITED",
+      "to": "ARCHIVED",
+      "conditions": ["identity.retired"]
+    },
+
+    "REACTIVATED_TO_ACTIVE": {
+      "from": "REACTIVATED",
+      "to": "ACTIVE",
+      "conditions": ["consent.updated", "wellbeing.baseline_completed"]
+    },
+
+    "REACTIVATED_TO_ARCHIVED": {
+      "from": "REACTIVATED",
+      "to": "ARCHIVED",
+      "conditions": ["identity.retired"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "user.lifecycle.created",
+        "user.lifecycle.verified",
+        "user.lifecycle.activated",
+        "user.lifecycle.suspended",
+        "user.lifecycle.exited",
+        "user.lifecycle.reactivated",
+        "user.lifecycle.archived",
+        "user.lifecycle.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "lifecycleType": "identity",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Identity Standard"
+  }
+}
