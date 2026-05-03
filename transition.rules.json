@@ -1,0 +1,287 @@
+{
+  "id": "transition.rules",
+  "version": "1.0.0",
+  "description": "Global transition rule engine for Beast System 3.0. Defines deterministic conditions, gating logic, safety constraints, and cross-domain transition enforcement.",
+  "domain": "core",
+  "lastUpdated": "2026-05-03",
+
+  "ruleGroups": {
+    "identityRules": {
+      "description": "Rules governing identity transitions across user lifecycle and state-machine.",
+      "rules": [
+        {
+          "id": "identity.initialized",
+          "type": "boolean",
+          "description": "Identity record has been created with minimum required attributes."
+        },
+        {
+          "id": "identity.verified",
+          "type": "boolean",
+          "description": "Identity has passed verification checks."
+        },
+        {
+          "id": "identity.invalid",
+          "type": "boolean",
+          "description": "Identity failed verification or contains invalid attributes."
+        },
+        {
+          "id": "identity.retired",
+          "type": "boolean",
+          "description": "Identity is no longer active and is ready for archival."
+        },
+        {
+          "id": "identity.expired",
+          "type": "boolean",
+          "description": "Identity verification window expired before completion."
+        }
+      ]
+    },
+
+    "consentRules": {
+      "description": "Rules governing consent transitions.",
+      "rules": [
+        {
+          "id": "consent.confirmed",
+          "type": "boolean",
+          "description": "User has confirmed rights, protections, and participation terms."
+        },
+        {
+          "id": "consent.denied",
+          "type": "boolean",
+          "description": "User declined required consent."
+        },
+        {
+          "id": "consent.updated",
+          "type": "boolean",
+          "description": "User has updated consent after reactivation or lifecycle change."
+        }
+      ]
+    },
+
+    "safetyRules": {
+      "description": "Rules governing safety and risk transitions.",
+      "rules": [
+        {
+          "id": "safety.concern",
+          "type": "boolean",
+          "description": "A safety concern has been detected requiring temporary suspension or review."
+        },
+        {
+          "id": "safety.resolved",
+          "type": "boolean",
+          "description": "Safety concern has been resolved and user may resume normal state."
+        }
+      ]
+    },
+
+    "wellbeingRules": {
+      "description": "Rules governing wellbeing transitions.",
+      "rules": [
+        {
+          "id": "wellbeing.risk_detected",
+          "type": "boolean",
+          "description": "Wellbeing assessment indicates elevated risk requiring intervention."
+        },
+        {
+          "id": "wellbeing.stable",
+          "type": "boolean",
+          "description": "Wellbeing assessment indicates stability."
+        },
+        {
+          "id": "wellbeing.baseline_completed",
+          "type": "boolean",
+          "description": "Baseline wellbeing scan completed for reactivation."
+        }
+      ]
+    },
+
+    "caseRules": {
+      "description": "Rules governing case lifecycle transitions.",
+      "rules": [
+        {
+          "id": "case.initialized",
+          "type": "boolean",
+          "description": "Case has been created with minimum required attributes."
+        },
+        {
+          "id": "case.classified",
+          "type": "boolean",
+          "description": "Case classification completed."
+        },
+        {
+          "id": "case.invalid",
+          "type": "boolean",
+          "description": "Case is invalid or incomplete."
+        },
+        {
+          "id": "case.expired",
+          "type": "boolean",
+          "description": "Case expired before classification or assessment."
+        },
+        {
+          "id": "assessment.completed",
+          "type": "boolean",
+          "description": "Assessment completed successfully."
+        },
+        {
+          "id": "assessment.risk_detected",
+          "type": "boolean",
+          "description": "Assessment detected elevated risk requiring escalation."
+        },
+        {
+          "id": "assessment.invalid",
+          "type": "boolean",
+          "description": "Assessment invalid or incomplete."
+        },
+        {
+          "id": "action.completed",
+          "type": "boolean",
+          "description": "Stewardship action completed."
+        },
+        {
+          "id": "action.escalation_required",
+          "type": "boolean",
+          "description": "Action requires escalation to higher-level workflow."
+        },
+        {
+          "id": "action.invalid",
+          "type": "boolean",
+          "description": "Action invalid or incomplete."
+        },
+        {
+          "id": "review.resolved",
+          "type": "boolean",
+          "description": "Review confirms case is resolved."
+        },
+        {
+          "id": "review.needs_more_action",
+          "type": "boolean",
+          "description": "Review indicates additional action required."
+        },
+        {
+          "id": "review.escalation_required",
+          "type": "boolean",
+          "description": "Review requires escalation."
+        },
+        {
+          "id": "review.invalid",
+          "type": "boolean",
+          "description": "Review invalid or incomplete."
+        },
+        {
+          "id": "escalation.resolved",
+          "type": "boolean",
+          "description": "Escalation resolved and case may return to review."
+        },
+        {
+          "id": "escalation.completed",
+          "type": "boolean",
+          "description": "Escalation completed and case may proceed to closure."
+        },
+        {
+          "id": "escalation.terminal",
+          "type": "boolean",
+          "description": "Escalation reached terminal state requiring archival."
+        },
+        {
+          "id": "closure.finalized",
+          "type": "boolean",
+          "description": "Case closure finalized and ready for archival."
+        }
+      ]
+    },
+
+    "eventRules": {
+      "description": "Rules governing event lifecycle transitions.",
+      "rules": [
+        {
+          "id": "event.created",
+          "type": "boolean",
+          "description": "Event object created successfully."
+        },
+        {
+          "id": "event.malformed",
+          "type": "boolean",
+          "description": "Event object malformed or missing required fields."
+        },
+        {
+          "id": "event.valid",
+          "type": "boolean",
+          "description": "Event passed validation."
+        },
+        {
+          "id": "event.invalid",
+          "type": "boolean",
+          "description": "Event failed validation."
+        },
+        {
+          "id": "metadata.enriched",
+          "type": "boolean",
+          "description": "Event metadata enrichment completed."
+        },
+        {
+          "id": "metadata.failed",
+          "type": "boolean",
+          "description": "Event metadata enrichment failed."
+        },
+        {
+          "id": "log.entry_created",
+          "type": "boolean",
+          "description": "Audit log entry successfully created."
+        },
+        {
+          "id": "log.failed",
+          "type": "boolean",
+          "description": "Audit log entry creation failed."
+        },
+        {
+          "id": "chain.linked",
+          "type": "boolean",
+          "description": "Event successfully linked into audit chain."
+        },
+        {
+          "id": "chain.invalid",
+          "type": "boolean",
+          "description": "Audit chain linkage invalid."
+        },
+        {
+          "id": "signature.applied",
+          "type": "boolean",
+          "description": "Cryptographic signature applied to event."
+        },
+        {
+          "id": "event.sealed",
+          "type": "boolean",
+          "description": "Event finalized and ready for archival."
+        }
+      ]
+    }
+  },
+
+  "evaluation": {
+    "order": [
+      "identityRules",
+      "consentRules",
+      "safetyRules",
+      "wellbeingRules",
+      "caseRules",
+      "eventRules"
+    ],
+    "mode": "deterministic",
+    "description": "Rules are evaluated in strict order. All required conditions must be true for a transition to be permitted."
+  },
+
+  "invariants": {
+    "nonPunitive": true,
+    "dignityPreserving": true,
+    "appendOnly": true,
+    "auditRequired": true,
+    "cryptographicIntegrity": true
+  },
+
+  "metadata": {
+    "rulesetType": "transition",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Logic Standard"
+  }
+}
