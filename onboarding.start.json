@@ -1,0 +1,95 @@
+{
+  "id": "onboarding.start",
+  "version": "1.0.0",
+  "description": "Initial entry point for the Beast System 3.0 onboarding workflow. Establishes identity anchor, session context, and eligibility checks.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User initiates onboarding.",
+      "transitions": ["CHECK_ELIGIBILITY"]
+    },
+
+    "CHECK_ELIGIBILITY": {
+      "description": "System verifies that the user meets minimum onboarding requirements.",
+      "validators": ["validator.identity", "validator.document"],
+      "transitions": ["CREATE_SESSION", "REJECT"]
+    },
+
+    "CREATE_SESSION": {
+      "description": "Creates a temporary onboarding session and assigns a unique onboarding token.",
+      "transitions": ["ROUTE_TO_VERIFICATION"]
+    },
+
+    "ROUTE_TO_VERIFICATION": {
+      "description": "Directs the user to the identity-verification workflow.",
+      "transitions": ["HANDOFF"]
+    },
+
+    "REJECT": {
+      "description": "User does not meet eligibility requirements. Workflow terminates.",
+      "terminal": true
+    },
+
+    "HANDOFF": {
+      "description": "Workflow hands off to onboarding.identity-verification.json.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_CHECK_ELIGIBILITY": {
+      "from": "START",
+      "to": "CHECK_ELIGIBILITY",
+      "conditions": []
+    },
+
+    "CHECK_ELIGIBILITY_TO_CREATE_SESSION": {
+      "from": "CHECK_ELIGIBILITY",
+      "to": "CREATE_SESSION",
+      "conditions": ["identity.valid", "documents.valid"]
+    },
+
+    "CHECK_ELIGIBILITY_TO_REJECT": {
+      "from": "CHECK_ELIGIBILITY",
+      "to": "REJECT",
+      "conditions": ["identity.invalid OR documents.invalid"]
+    },
+
+    "CREATE_SESSION_TO_ROUTE_TO_VERIFICATION": {
+      "from": "CREATE_SESSION",
+      "to": "ROUTE_TO_VERIFICATION",
+      "conditions": ["session.created"]
+    },
+
+    "ROUTE_TO_VERIFICATION_TO_HANDOFF": {
+      "from": "ROUTE_TO_VERIFICATION",
+      "to": "HANDOFF",
+      "conditions": ["handoff.ready"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": false,
+      "logging": "standard"
+    },
+    "audit": {
+      "captureEvents": [
+        "onboarding.start",
+        "onboarding.eligibility-check",
+        "onboarding.session-created",
+        "onboarding.handoff"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "entry",
+    "nextWorkflow": "onboarding.identity-verification",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
