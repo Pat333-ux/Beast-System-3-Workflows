@@ -1,0 +1,88 @@
+{
+  "version": "1.0.0",
+  "description": "Index of all workflow definitions for Beast System 3.0 (SAIA-Class S).",
+  "lastUpdated": "2026-05-03",
+
+  "workflows": {
+    "onboarding": {
+      "domain": "identity",
+      "files": [
+        "workflows/onboarding/onboarding.start.json",
+        "workflows/onboarding/onboarding.identity-verification.json",
+        "workflows/onboarding/onboarding.profile-creation.json",
+        "workflows/onboarding/onboarding.initial-assessment.json",
+        "workflows/onboarding/onboarding.welcome-sequence.json",
+        "workflows/onboarding/onboarding.complete.json"
+      ],
+      "summary": "Handles the full onboarding sequence from initial entry to completion."
+    },
+
+    "verification": {
+      "domain": "identity",
+      "files": [
+        "workflows/verification/verification.document-check.json",
+        "workflows/verification/verification.biometric.json",
+        "workflows/verification/verification.residency.json",
+        "workflows/verification/verification.trust-score-init.json",
+        "workflows/verification/verification.finalize.json"
+      ],
+      "summary": "Performs document, biometric, residency, and trust-score verification."
+    },
+
+    "escalation": {
+      "domain": "governance",
+      "files": [
+        "workflows/escalation/escalation.low.json",
+        "workflows/escalation/escalation.medium.json",
+        "workflows/escalation/escalation.high.json",
+        "workflows/escalation/escalation.critical.json",
+        "workflows/escalation/escalation.review.json",
+        "workflows/escalation/escalation.close.json"
+      ],
+      "summary": "Defines escalation pathways and review/closure procedures."
+    },
+
+    "wellbeing": {
+      "domain": "wellbeing",
+      "files": [
+        "workflows/wellbeing/wellbeing.check-in.json",
+        "workflows/wellbeing/wellbeing.assessment.json",
+        "workflows/wellbeing/wellbeing.support-plan.json",
+        "workflows/wellbeing/wellbeing.follow-up.json",
+        "workflows/wellbeing/wellbeing.stabilization.json",
+        "workflows/wellbeing/wellbeing.close.json"
+      ],
+      "summary": "Manages wellbeing assessments, support plans, and stabilization flows."
+    },
+
+    "audit": {
+      "domain": "audit",
+      "files": [
+        "workflows/audit/audit.event-capture.json",
+        "workflows/audit/audit.chain-validation.json",
+        "workflows/audit/audit.discrepancy-review.json",
+        "workflows/audit/audit.corrective-action.json",
+        "workflows/audit/audit.finalize.json"
+      ],
+      "summary": "Captures events, validates chains, and manages corrective actions."
+    },
+
+    "community": {
+      "domain": "community",
+      "files": [
+        "workflows/community/community.entry.json",
+        "workflows/community/community.interaction.json",
+        "workflows/community/community.feedback.json",
+        "workflows/community/community.moderation.json",
+        "workflows/community/community.exit.json"
+      ],
+      "summary": "Defines community entry, interaction, moderation, and exit flows."
+    }
+  },
+
+  "metadata": {
+    "totalWorkflows": 6,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
