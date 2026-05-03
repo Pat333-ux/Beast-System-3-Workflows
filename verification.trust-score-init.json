@@ -1,0 +1,109 @@
+{
+  "id": "verification.trust-score-init",
+  "version": "1.0.0",
+  "description": "Initializes the user's trust score based on verified identity, residency, and biometric attributes. Produces a deterministic baseline score for system participation.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User arrives from verification.residency.",
+      "transitions": ["AGGREGATE_VERIFICATION_DATA"]
+    },
+
+    "AGGREGATE_VERIFICATION_DATA": {
+      "description": "Aggregates all verified attributes (documents, biometrics, residency) into a unified scoring input.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CALCULATE_SCORE", "REJECT"]
+    },
+
+    "CALCULATE_SCORE": {
+      "description": "Applies deterministic scoring rules to generate the initial trust score.",
+      "validators": ["validator.score"],
+      "transitions": ["ASSIGN_SCORE_LEVEL", "REJECT"]
+    },
+
+    "ASSIGN_SCORE_LEVEL": {
+      "description": "Assigns a trust level (baseline, elevated, restricted) based on the calculated score.",
+      "validators": ["validator.score"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "REJECT": {
+      "description": "Trust score initialization failed. Workflow terminates.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Trust score successfully initialized. Workflow hands off to verification.finalize.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_AGGREGATE_VERIFICATION_DATA": {
+      "from": "START",
+      "to": "AGGREGATE_VERIFICATION_DATA",
+      "conditions": []
+    },
+
+    "AGGREGATE_VERIFICATION_DATA_TO_CALCULATE_SCORE": {
+      "from": "AGGREGATE_VERIFICATION_DATA",
+      "to": "CALCULATE_SCORE",
+      "conditions": ["verification.data_aggregated"]
+    },
+
+    "AGGREGATE_VERIFICATION_DATA_TO_REJECT": {
+      "from": "AGGREGATE_VERIFICATION_DATA",
+      "to": "REJECT",
+      "conditions": ["verification.data_missing"]
+    },
+
+    "CALCULATE_SCORE_TO_ASSIGN_SCORE_LEVEL": {
+      "from": "CALCULATE_SCORE",
+      "to": "ASSIGN_SCORE_LEVEL",
+      "conditions": ["score.calculated"]
+    },
+
+    "CALCULATE_SCORE_TO_REJECT": {
+      "from": "CALCULATE_SCORE",
+      "to": "REJECT",
+      "conditions": ["score.calculation_failed"]
+    },
+
+    "ASSIGN_SCORE_LEVEL_TO_COMPLETE": {
+      "from": "ASSIGN_SCORE_LEVEL",
+      "to": "COMPLETE",
+      "conditions": ["score.level_assigned"]
+    },
+
+    "ASSIGN_SCORE_LEVEL_TO_REJECT": {
+      "from": "ASSIGN_SCORE_LEVEL",
+      "to": "REJECT",
+      "conditions": ["score.assignment_failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "verification.data-aggregated",
+        "verification.score-calculated",
+        "verification.score-level-assigned",
+        "verification.trust-score-init-complete"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "verification",
+    "nextWorkflow": "verification.finalize",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
