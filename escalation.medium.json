@@ -1,0 +1,135 @@
+{
+  "id": "escalation.moderate",
+  "version": "1.0.0",
+  "description": "Moderate-tier escalation workflow for recurring issues or moderate-impact concerns requiring structured intervention, corrective planning, and follow-up.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when an issue exceeds low-tier resolution capacity.",
+      "transitions": ["ASSESS_PATTERN"]
+    },
+
+    "ASSESS_PATTERN": {
+      "description": "Evaluates recurrence, pattern severity, and contextual factors to determine appropriate intervention.",
+      "validators": ["validator.workflow"],
+      "transitions": ["REQUEST_CLARIFICATION", "DEVELOP_CORRECTIVE_PLAN", "REJECT"]
+    },
+
+    "REQUEST_CLARIFICATION": {
+      "description": "Requests additional context or clarification to understand the root cause of the recurring issue.",
+      "validators": ["validator.workflow"],
+      "transitions": ["DEVELOP_CORRECTIVE_PLAN", "REJECT"]
+    },
+
+    "DEVELOP_CORRECTIVE_PLAN": {
+      "description": "Creates a structured corrective plan with clear expectations, timelines, and supportive measures.",
+      "validators": ["validator.workflow"],
+      "transitions": ["FOLLOW_UP", "REJECT"]
+    },
+
+    "FOLLOW_UP": {
+      "description": "Conducts a follow-up review to confirm adherence to the corrective plan and evaluate improvement.",
+      "validators": ["validator.workflow"],
+      "transitions": ["RESOLVE", "REJECT"]
+    },
+
+    "RESOLVE": {
+      "description": "Issue resolved at the moderate tier. No further escalation required.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Issue cannot be resolved at the moderate tier and must be escalated to the elevated tier.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_ASSESS_PATTERN": {
+      "from": "START",
+      "to": "ASSESS_PATTERN",
+      "conditions": []
+    },
+
+    "ASSESS_PATTERN_TO_REQUEST_CLARIFICATION": {
+      "from": "ASSESS_PATTERN",
+      "to": "REQUEST_CLARIFICATION",
+      "conditions": ["pattern.needs_clarification"]
+    },
+
+    "ASSESS_PATTERN_TO_DEVELOP_CORRECTIVE_PLAN": {
+      "from": "ASSESS_PATTERN",
+      "to": "DEVELOP_CORRECTIVE_PLAN",
+      "conditions": ["pattern.recurring", "pattern.moderate_severity"]
+    },
+
+    "ASSESS_PATTERN_TO_REJECT": {
+      "from": "ASSESS_PATTERN",
+      "to": "REJECT",
+      "conditions": ["pattern.exceeds_moderate_tier"]
+    },
+
+    "REQUEST_CLARIFICATION_TO_DEVELOP_CORRECTIVE_PLAN": {
+      "from": "REQUEST_CLARIFICATION",
+      "to": "DEVELOP_CORRECTIVE_PLAN",
+      "conditions": ["clarification.received"]
+    },
+
+    "REQUEST_CLARIFICATION_TO_REJECT": {
+      "from": "REQUEST_CLARIFICATION",
+      "to": "REJECT",
+      "conditions": ["clarification.unresolved"]
+    },
+
+    "DEVELOP_CORRECTIVE_PLAN_TO_FOLLOW_UP": {
+      "from": "DEVELOP_CORRECTIVE_PLAN",
+      "to": "FOLLOW_UP",
+      "conditions": ["plan.created"]
+    },
+
+    "DEVELOP_CORRECTIVE_PLAN_TO_REJECT": {
+      "from": "DEVELOP_CORRECTIVE_PLAN",
+      "to": "REJECT",
+      "conditions": ["plan.creation_failed"]
+    },
+
+    "FOLLOW_UP_TO_RESOLVE": {
+      "from": "FOLLOW_UP",
+      "to": "RESOLVE",
+      "conditions": ["followup.successful"]
+    },
+
+    "FOLLOW_UP_TO_REJECT": {
+      "from": "FOLLOW_UP",
+      "to": "REJECT",
+      "conditions": ["followup.unsuccessful"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "escalation.moderate.pattern-assessed",
+        "escalation.moderate.clarification-requested",
+        "escalation.moderate.corrective-plan-created",
+        "escalation.moderate.follow-up",
+        "escalation.moderate.resolved",
+        "escalation.moderate.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "tier": "moderate",
+    "workflowType": "escalation",
+    "nextWorkflow": "escalation.elevated",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
