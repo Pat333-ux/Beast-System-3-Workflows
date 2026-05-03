@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "description": "Index of all logic, transition rules, validators, and policies for Beast System 3.0 (SAIA-Class S).",
+  "lastUpdated": "2026-05-03",
+
+  "logic": {
+    "transitions": {
+      "id": "logic.transitions",
+      "files": [
+        "logic/transitions/transition.rules.json",
+        "logic/transitions/transition.conditions.json",
+        "logic/transitions/transition.mapping.json"
+      ],
+      "summary": "Defines all transition rules, conditions, and mapping tables for workflow and lifecycle state changes."
+    },
+
+    "validators": {
+      "id": "logic.validators",
+      "files": [
+        "logic/validators/validator.identity.json",
+        "logic/validators/validator.document.json",
+        "logic/validators/validator.score.json",
+        "logic/validators/validator.workflow.json"
+      ],
+      "summary": "Validation logic for identity, documents, scoring, and workflow integrity."
+    },
+
+    "policies": {
+      "id": "logic.policies",
+      "files": [
+        "logic/policies/policy.escalation.json",
+        "logic/policies/policy.wellbeing.json",
+        "logic/policies/policy.audit.json",
+        "logic/policies/policy.community.json"
+      ],
+      "summary": "Policy definitions governing escalation, wellbeing, audit, and community behavior."
+    }
+  },
+
+  "metadata": {
+    "totalLogicGroups": 3,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Logic Standard"
+  }
+}
