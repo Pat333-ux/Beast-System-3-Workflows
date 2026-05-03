@@ -1,0 +1,122 @@
+{
+  "id": "escalation.low",
+  "version": "1.0.0",
+  "description": "Low‑tier escalation workflow for minor issues requiring corrective guidance, clarification, or supportive intervention. Designed to prevent unnecessary escalation and preserve user dignity.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered by a low‑severity issue or minor deviation.",
+      "transitions": ["ASSESS_CONTEXT"]
+    },
+
+    "ASSESS_CONTEXT": {
+      "description": "Evaluates the issue context, intent, and environmental factors to determine appropriate corrective action.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ISSUE_CLARIFICATION", "SUPPORTIVE_GUIDANCE", "REJECT"]
+    },
+
+    "ISSUE_CLARIFICATION": {
+      "description": "Requests clarification or additional information to resolve misunderstandings or incomplete data.",
+      "validators": ["validator.workflow"],
+      "transitions": ["RESOLVE", "SUPPORTIVE_GUIDANCE", "REJECT"]
+    },
+
+    "SUPPORTIVE_GUIDANCE": {
+      "description": "Provides corrective guidance, education, or resources to address the issue without escalation.",
+      "validators": ["validator.workflow"],
+      "transitions": ["RESOLVE", "REJECT"]
+    },
+
+    "RESOLVE": {
+      "description": "Issue resolved at the lowest tier. No further escalation required.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Issue cannot be resolved at the low tier and must be escalated to the next tier.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_ASSESS_CONTEXT": {
+      "from": "START",
+      "to": "ASSESS_CONTEXT",
+      "conditions": []
+    },
+
+    "ASSESS_CONTEXT_TO_ISSUE_CLARIFICATION": {
+      "from": "ASSESS_CONTEXT",
+      "to": "ISSUE_CLARIFICATION",
+      "conditions": ["context.needs_clarification"]
+    },
+
+    "ASSESS_CONTEXT_TO_SUPPORTIVE_GUIDANCE": {
+      "from": "ASSESS_CONTEXT",
+      "to": "SUPPORTIVE_GUIDANCE",
+      "conditions": ["context.minor_issue"]
+    },
+
+    "ASSESS_CONTEXT_TO_REJECT": {
+      "from": "ASSESS_CONTEXT",
+      "to": "REJECT",
+      "conditions": ["context.exceeds_low_tier"]
+    },
+
+    "ISSUE_CLARIFICATION_TO_RESOLVE": {
+      "from": "ISSUE_CLARIFICATION",
+      "to": "RESOLVE",
+      "conditions": ["issue.clarified"]
+    },
+
+    "ISSUE_CLARIFICATION_TO_SUPPORTIVE_GUIDANCE": {
+      "from": "ISSUE_CLARIFICATION",
+      "to": "SUPPORTIVE_GUIDANCE",
+      "conditions": ["issue.needs_guidance"]
+    },
+
+    "ISSUE_CLARIFICATION_TO_REJECT": {
+      "from": "ISSUE_CLARIFICATION",
+      "to": "REJECT",
+      "conditions": ["issue.unresolved"]
+    },
+
+    "SUPPORTIVE_GUIDANCE_TO_RESOLVE": {
+      "from": "SUPPORTIVE_GUIDANCE",
+      "to": "RESOLVE",
+      "conditions": ["guidance.applied"]
+    },
+
+    "SUPPORTIVE_GUIDANCE_TO_REJECT": {
+      "from": "SUPPORTIVE_GUIDANCE",
+      "to": "REJECT",
+      "conditions": ["guidance.insufficient"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "standard"
+    },
+    "audit": {
+      "captureEvents": [
+        "escalation.low.context-assessed",
+        "escalation.low.clarification-requested",
+        "escalation.low.guidance-provided",
+        "escalation.low.resolved",
+        "escalation.low.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "tier": "low",
+    "workflowType": "escalation",
+    "nextWorkflow": "escalation.moderate",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
