@@ -1,0 +1,110 @@
+{
+  "id": "escalation.review",
+  "version": "1.0.0",
+  "description": "Final adjudication tier for escalated cases. Conducts formal review, determines findings, and issues closure or corrective directives.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when a case exceeds critical-tier capacity or requires formal adjudication.",
+      "transitions": ["FORMAL_REVIEW"]
+    },
+
+    "FORMAL_REVIEW": {
+      "description": "Conducts a structured, evidence-based review of all case materials, interventions, and outcomes.",
+      "validators": ["validator.workflow"],
+      "transitions": ["DETERMINE_FINDINGS", "REJECT"]
+    },
+
+    "DETERMINE_FINDINGS": {
+      "description": "Determines formal findings based on verified evidence, context, and system standards.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ISSUE_DIRECTIVES", "REJECT"]
+    },
+
+    "ISSUE_DIRECTIVES": {
+      "description": "Issues final directives, recommendations, or restorative actions required for closure.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CLOSE_CASE", "REJECT"]
+    },
+
+    "CLOSE_CASE": {
+      "description": "Closes the case with a complete audit trail and final status.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Case cannot be adjudicated due to missing or inconsistent data. Requires administrative intervention.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_FORMAL_REVIEW": {
+      "from": "START",
+      "to": "FORMAL_REVIEW",
+      "conditions": []
+    },
+
+    "FORMAL_REVIEW_TO_DETERMINE_FINDINGS": {
+      "from": "FORMAL_REVIEW",
+      "to": "DETERMINE_FINDINGS",
+      "conditions": ["review.completed"]
+    },
+
+    "FORMAL_REVIEW_TO_REJECT": {
+      "from": "FORMAL_REVIEW",
+      "to": "REJECT",
+      "conditions": ["review.incomplete"]
+    },
+
+    "DETERMINE_FINDINGS_TO_ISSUE_DIRECTIVES": {
+      "from": "DETERMINE_FINDINGS",
+      "to": "ISSUE_DIRECTIVES",
+      "conditions": ["findings.verified"]
+    },
+
+    "DETERMINE_FINDINGS_TO_REJECT": {
+      "from": "DETERMINE_FINDINGS",
+      "to": "REJECT",
+      "conditions": ["findings.invalid"]
+    },
+
+    "ISSUE_DIRECTIVES_TO_CLOSE_CASE": {
+      "from": "ISSUE_DIRECTIVES",
+      "to": "CLOSE_CASE",
+      "conditions": ["directives.issued"]
+    },
+
+    "ISSUE_DIRECTIVES_TO_REJECT": {
+      "from": "ISSUE_DIRECTIVES",
+      "to": "REJECT",
+      "conditions": ["directives.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "escalation.review.formal-review",
+        "escalation.review.findings-determined",
+        "escalation.review.directives-issued",
+        "escalation.review.case-closed",
+        "escalation.review.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "tier": "review",
+    "workflowType": "escalation",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
