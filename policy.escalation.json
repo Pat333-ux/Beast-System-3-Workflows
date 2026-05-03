@@ -1,0 +1,314 @@
+{
+  "id": "policy.escalation",
+  "version": "1.0.0",
+  "description": "Global escalation policy for Beast System 3.0. Defines triggers, levels, routing, safeguards, and audit requirements for all escalation flows.",
+  "domain": "governance",
+  "lastUpdated": "2026-05-03",
+
+  "principles": {
+    "nonPunitive": true,
+    "dignityPreserving": true,
+    "leastIntrusiveFirst": true,
+    "traumaPreventive": true,
+    "proportionalResponse": true,
+    "auditRequired": true,
+    "crossDomainConsistency": true
+  },
+
+  "scope": {
+    "appliesTo": [
+      "identity",
+      "case",
+      "community",
+      "wellbeing",
+      "event",
+      "workflow"
+    ],
+    "description": "Escalation policy applies to all domains where risk, harm, or unresolved issues may require higher-level review or intervention."
+  },
+
+  "levels": {
+    "L0_SELF_RESOLUTION": {
+      "description": "Self-resolution and local clarification. No formal escalation. Encourages dialogue, clarification, and voluntary repair.",
+      "allowedActions": [
+        "clarification_request",
+        "information_provision",
+        "voluntary_check_in"
+      ],
+      "requiredSafeguards": [
+        "no_punitive_language",
+        "no_threats_of_exclusion",
+        "respect_confidentiality"
+      ],
+      "typicalTriggers": [
+        "low_confusion",
+        "minor_misunderstanding",
+        "non_risk_feedback"
+      ]
+    },
+
+    "L1_STEWARDSHIP_REVIEW": {
+      "description": "Review by designated steward or facilitator. Focus on support, repair, and understanding.",
+      "allowedActions": [
+        "structured_conversation",
+        "support_offer",
+        "resource_referral",
+        "wellbeing_check_suggestion"
+      ],
+      "requiredSafeguards": [
+        "voluntary_participation_where_possible",
+        "no_punitive_sanctions",
+        "document_context_not_character",
+        "offer_right_to_be_heard"
+      ],
+      "typicalTriggers": [
+        "repeated_misunderstandings",
+        "early_signs_of_distress",
+        "low_to_medium_impact_conflict"
+      ]
+    },
+
+    "L2_FORMAL_CASE_CREATION": {
+      "description": "Creation of a formal case in the Case Engine for structured assessment and stewardship action.",
+      "allowedActions": [
+        "case_intake",
+        "case_classification",
+        "structured_assessment",
+        "stewardship_action_planning"
+      ],
+      "requiredSafeguards": [
+        "inform_affected_parties_where_safe",
+        "clearly_state_purpose_is_support_not_punishment",
+        "ensure_access_to_response_channel",
+        "minimize_exposure_of_sensitive_details"
+      ],
+      "typicalTriggers": [
+        "sustained_impact_on_wellbeing",
+        "pattern_of_harmful_outcomes",
+        "medium_risk_safety_signals",
+        "governance_obligations_triggered"
+      ]
+    },
+
+    "L3_SPECIALIZED_WELLBEING_OR_SAFETY": {
+      "description": "Escalation to specialized wellbeing or safety workflows when risk or distress is elevated.",
+      "allowedActions": [
+        "wellbeing_assessment",
+        "safety_planning",
+        "enhanced_support_referrals",
+        "temporary_safety_measures_non_punitive"
+      ],
+      "requiredSafeguards": [
+        "prioritize_user_safety_and_dignity",
+        "avoid_language_that_implies_blame",
+        "ensure_informed_explanation_of_steps",
+        "limit_access_to_sensitive_data_on_need_to_know_basis"
+      ],
+      "typicalTriggers": [
+        "wellbeing.risk_detected",
+        "safety.concern",
+        "high_emotional_distress",
+        "credible_indicators_of_harm"
+      ]
+    },
+
+    "L4_SYSTEM_GOVERNANCE_REVIEW": {
+      "description": "Escalation to system-level governance (e.g., multi-steward panel) for complex, systemic, or precedent-setting issues.",
+      "allowedActions": [
+        "multi_steward_review",
+        "policy_interpretation",
+        "systemic_pattern_analysis",
+        "recommendation_for_structural_change"
+      ],
+      "requiredSafeguards": [
+        "avoid_personalization_of_systemic_issues",
+        "ensure_representation_and_voice_for_affected",
+        "document_rationale_for_decisions",
+        "prefer_structural_fixes_over_individual_blame"
+      ],
+      "typicalTriggers": [
+        "repeated_similar_cases",
+        "policy_gaps_or_ambiguity",
+        "cross_domain_conflicts",
+        "high_impact_community_effects"
+      ]
+    },
+
+    "L5_EXTERNAL_AUTHORITY_INTERFACE": {
+      "description": "Carefully controlled interface with external authorities when legally required or when imminent harm cannot be mitigated internally.",
+      "allowedActions": [
+        "minimal_required_disclosure",
+        "legal_compliance_actions",
+        "emergency_contact_protocols"
+      ],
+      "requiredSafeguards": [
+        "use_only_when_strictly_necessary",
+        "disclose_minimum_required_information",
+        "document_legal_basis_and_rationale",
+        "post_event_review_for_trauma_prevention_improvements"
+      ],
+      "typicalTriggers": [
+        "imminent_risk_of_serious_harm",
+        "mandatory_reporting_requirements",
+        "court_orders_or_legal_mandates"
+      ]
+    }
+  },
+
+  "triggers": {
+    "riskBased": {
+      "description": "Escalation triggered by risk or safety signals.",
+      "conditions": [
+        "safety.concern",
+        "wellbeing.risk_detected",
+        "assessment.risk_detected",
+        "escalation.terminal"
+      ]
+    },
+    "patternBased": {
+      "description": "Escalation triggered by repeated or systemic patterns.",
+      "conditions": [
+        "case.repeated_similar",
+        "community.pattern_of_reports",
+        "score.trend_worsening"
+      ]
+    },
+    "obligationBased": {
+      "description": "Escalation triggered by legal, contractual, or governance obligations.",
+      "conditions": [
+        "policy.mandatory_escalation",
+        "legal.mandatory_reporting",
+        "governance.threshold_exceeded"
+      ]
+    }
+  },
+
+  "routing": {
+    "identity": {
+      "L1": "identity.steward",
+      "L2": "case.engine",
+      "L3": "wellbeing.engine",
+      "L4": "governance.panel",
+      "L5": "external.authority_interface"
+    },
+    "case": {
+      "L1": "case.steward",
+      "L2": "case.engine",
+      "L3": "wellbeing.engine",
+      "L4": "governance.panel",
+      "L5": "external.authority_interface"
+    },
+    "community": {
+      "L1": "community.moderation.steward",
+      "L2": "case.engine",
+      "L3": "wellbeing.engine",
+      "L4": "governance.panel",
+      "L5": "external.authority_interface"
+    },
+    "wellbeing": {
+      "L1": "wellbeing.support",
+      "L2": "case.engine",
+      "L3": "specialized_wellbeing_team",
+      "L4": "governance.panel",
+      "L5": "external.authority_interface"
+    },
+    "event": {
+      "L1": "audit.review",
+      "L2": "case.engine",
+      "L3": "governance.panel",
+      "L4": "system.architecture_review",
+      "L5": "external.authority_interface"
+    }
+  },
+
+  "safeguards": {
+    "requiredForAllEscalations": [
+      "record_reason_for_escalation",
+      "record_level_selected",
+      "capture_consent_where_possible",
+      "avoid_punitive_language",
+      "ensure_access_to_explanation",
+      "log_to_audit_chain"
+    ],
+    "prohibitedPractices": [
+      "using_escalation_as_punishment",
+      "threatening_escalation_to_force_compliance",
+      "escalating_without_documented_reason",
+      "sharing_unnecessary_sensitive_information",
+      "bypassing_less_intrusive_levels_without_justification"
+    ]
+  },
+
+  "integration": {
+    "lifecycleBindings": {
+      "case.lifecycle": [
+        "ASSESSMENT_TO_ESCALATED",
+        "STEWARDSHIP_ACTION_TO_ESCALATED",
+        "REVIEW_TO_ESCALATED",
+        "ESCALATED_TO_ARCHIVED"
+      ],
+      "user.lifecycle": [
+        "ACTIVE_TO_SUSPENDED",
+        "SUSPENDED_TO_EXITED"
+      ],
+      "event.lifecycle": [
+        "CHAINED_TO_REJECTED"
+      ]
+    },
+    "stateMachineBindings": {
+      "case.state-machine": [
+        "ASSESSMENT.ESCALATED",
+        "STEWARDSHIP_ACTION.ESCALATED",
+        "REVIEW.ESCALATED",
+        "ESCALATED.ARCHIVED"
+      ],
+      "user.state-machine": [
+        "ACTIVE.SUSPENDED"
+      ],
+      "event.state-machine": [
+        "CHAINED.REJECTED"
+      ]
+    },
+    "validators": [
+      "validator.identity",
+      "validator.score",
+      "validator.workflow"
+    ]
+  },
+
+  "audit": {
+    "captureEvents": [
+      "escalation.initiated",
+      "escalation.level_changed",
+      "escalation.rationale_recorded",
+      "escalation.safeguards_applied",
+      "escalation.completed",
+      "escalation.review_required"
+    ],
+    "requiredFields": [
+      "escalation.id",
+      "initiator.id",
+      "subject.id",
+      "domain",
+      "fromLevel",
+      "toLevel",
+      "timestamp",
+      "rationale",
+      "safeguardsApplied"
+    ]
+  },
+
+  "invariants": {
+    "mustDocumentRationale": true,
+    "mustApplySafeguards": true,
+    "mustPreferLowerLevelWhenAdequate": true,
+    "mustAvoidRetaliation": true,
+    "mustBeReviewable": true
+  },
+
+  "metadata": {
+    "policyType": "escalation",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Governance Standard"
+  }
+}
