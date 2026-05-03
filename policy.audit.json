@@ -1,0 +1,282 @@
+{
+  "id": "policy.audit",
+  "version": "1.0.0",
+  "description": "Global audit policy for Beast System 3.0. Defines what is logged, how it is chained, who can see it, and how it is used in a non-punitive, dignity-preserving way.",
+  "domain": "audit",
+  "lastUpdated": "2026-05-03",
+
+  "principles": {
+    "nonPunitive": true,
+    "dignityPreserving": true,
+    "appendOnly": true,
+    "traumaPreventive": true,
+    "minimalNecessaryDisclosure": true,
+    "purposeLimited": true,
+    "reviewableAndExplainable": true,
+    "cryptographicIntegrity": true,
+    "crossDomainConsistency": true
+  },
+
+  "scope": {
+    "appliesTo": [
+      "identity",
+      "case",
+      "wellbeing",
+      "community",
+      "workflow",
+      "event",
+      "scoring",
+      "escalation",
+      "policy_change",
+      "system_configuration"
+    ],
+    "description": "Audit policy applies to all domains where actions, decisions, or state changes may impact rights, wellbeing, or governance obligations."
+  },
+
+  "objectTypes": {
+    "auditLogEntry": {
+      "description": "Single canonical log entry representing an action, decision, or state change.",
+      "requiredFields": [
+        "id",
+        "timestamp",
+        "actor.id",
+        "actor.role",
+        "subject.id",
+        "domain",
+        "action",
+        "context",
+        "result",
+        "hash"
+      ]
+    },
+    "auditRecord": {
+      "description": "Aggregated view of related audit log entries for a single subject or case.",
+      "requiredFields": [
+        "id",
+        "subject.id",
+        "domain",
+        "entries[]",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "auditChainBlock": {
+      "description": "Block in the append-only audit chain.",
+      "requiredFields": [
+        "blockId",
+        "previousHash",
+        "entries[]",
+        "timestamp",
+        "hash",
+        "signature"
+      ]
+    }
+  },
+
+  "logging": {
+    "requiredEvents": [
+      "identity.validation.*",
+      "identity.lifecycle.*",
+      "case.lifecycle.*",
+      "case.state.*",
+      "event.lifecycle.*",
+      "event.state.*",
+      "workflow.validation.*",
+      "workflow.transition.*",
+      "score.validation.*",
+      "escalation.*",
+      "wellbeing.*",
+      "policy.change.*",
+      "system.config.*"
+    ],
+    "optionalEvents": [
+      "debug.*",
+      "performance.*"
+    ],
+    "exclusions": [
+      "raw_sensitive_content",
+      "unnecessary_personal_notes",
+      "private_third_party_content_not_material_to_decision"
+    ]
+  },
+
+  "dataMinimization": {
+    "rules": [
+      {
+        "id": "audit.no_raw_sensitive_payloads",
+          "description": "Do not store raw sensitive content (e.g., full messages, documents) when a summary or hash is sufficient.",
+          "enforced": true
+      },
+      {
+        "id": "audit.context_over_content",
+        "description": "Prefer logging context, rationale, and outcome over full content bodies.",
+        "enforced": true
+      },
+      {
+        "id": "audit.role_scoped_visibility",
+        "description": "Limit visibility of sensitive fields based on role and need-to-know.",
+        "enforced": true
+      }
+    ]
+  },
+
+  "chain": {
+    "enabled": true,
+    "type": "append_only",
+    "requirements": {
+      "hashAlgorithm": "SHA-256",
+      "signatureRequired": true,
+      "blockSizePolicy": "time_or_count_based",
+      "maxEntriesPerBlock": 1000
+    },
+    "invariants": {
+      "noDeletion": true,
+      "noInPlaceMutation": true,
+      "tamperEvident": true
+    }
+  },
+
+  "accessControl": {
+    "roles": {
+      "steward": {
+        "description": "Can view audit entries relevant to their cases and subjects.",
+        "permissions": [
+          "audit.view_subject_scoped",
+          "audit.request_explanation"
+        ]
+      },
+      "governance_panel": {
+        "description": "Can view aggregated audit records for systemic review.",
+        "permissions": [
+          "audit.view_aggregated",
+          "audit.view_policy_change",
+          "audit.view_system_config"
+        ]
+      },
+      "system_admin": {
+        "description": "Can view technical audit logs but not override chain integrity.",
+        "permissions": [
+          "audit.view_system",
+          "audit.view_performance"
+        ]
+      },
+      "subject_self": {
+        "description": "The person whose data is involved, with rights to see and question how they were treated.",
+        "permissions": [
+          "audit.view_self_summary",
+          "audit.request_clarification"
+        ]
+      }
+    },
+    "invariants": {
+      "noSecretDisciplinaryDossiers": true,
+      "subjectRightToKnowSummary": true,
+      "roleBasedRedaction": true
+    }
+  },
+
+  "usage": {
+    "allowedPurposes": [
+      "explanation_of_decisions",
+      "quality_improvement",
+      "safety_and_wellbeing_review",
+      "policy_refinement",
+      "legal_compliance_where_required"
+    ],
+    "prohibitedPurposes": [
+      "retaliation",
+      "punitive_surveillance",
+      "coercion",
+      "unbounded_data_mining_on_individuals"
+    ]
+  },
+
+  "integration": {
+    "lifecycleBindings": {
+      "event.lifecycle": [
+        "CREATED",
+        "VALIDATION",
+        "ENRICHED",
+        "LOGGED",
+        "CHAINED",
+        "FINALIZED",
+        "ARCHIVED",
+        "REJECTED"
+      ],
+      "case.lifecycle": [
+        "INTAKE",
+        "ASSESSMENT",
+        "STEWARDSHIP_ACTION",
+        "REVIEW",
+        "ESCALATED",
+        "CLOSURE",
+        "ARCHIVED",
+        "REJECTED"
+      ],
+      "user.lifecycle": [
+        "CREATED",
+        "PENDING_VERIFICATION",
+        "ACTIVE",
+        "SUSPENDED",
+        "EXITED",
+        "REACTIVATED",
+        "ARCHIVED",
+        "REJECTED"
+      ]
+    },
+    "stateMachineBindings": [
+      "event.state-machine",
+      "case.state-machine",
+      "user.state-machine",
+      "workflow.state-machine"
+    ],
+    "validators": [
+      "validator.workflow",
+      "validator.score",
+      "validator.document",
+      "validator.identity"
+    ]
+  },
+
+  "review": {
+    "periodicReviews": {
+      "enabled": true,
+      "frequency": "quarterly",
+      "responsibleRole": "governance_panel",
+      "objectives": [
+        "detect_systemic_issues",
+        "verify_non_punitive_use",
+        "improve_trauma_prevention",
+        "refine_policies_and_workflows"
+      ]
+    },
+    "subjectRequests": {
+      "allowed": true,
+      "description": "Subjects may request a summary of how audit data has been used in decisions about them.",
+      "requiredFields": [
+        "subject.id",
+        "time_range",
+        "reason_for_request"
+      ]
+    }
+  },
+
+  "auditOfAudit": {
+    "description": "Meta-audit of the audit system itself.",
+    "requirements": [
+      "log_access_to_audit_records",
+      "log_policy_changes",
+      "log_chain_verification_checks"
+    ],
+    "invariants": {
+      "cannotDisableAuditSilently": true,
+      "changesToAuditPolicyMustBeLogged": true
+    }
+  },
+
+  "metadata": {
+    "policyType": "audit",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Audit Standard"
+  }
+}
