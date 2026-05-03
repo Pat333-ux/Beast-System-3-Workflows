@@ -1,0 +1,55 @@
+{
+  "id": "wellbeing.stabilization",
+  "version": "1.0.0",
+  "description": "Stabilization workflow activated when wellbeing signals indicate acute disruption, regression, or instability. Ensures rapid support, safety, and restoration of baseline functioning.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered by red/orange wellbeing signals, regression detection, or crisis indicators.",
+      "transitions": ["INITIAL_STABILITY_CHECK"]
+    },
+
+    "INITIAL_STABILITY_CHECK": {
+      "description": "Performs an immediate stability check to determine severity, urgency, and required stabilization actions.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ACTIVATE_STABILIZATION_PROTOCOL", "REJECT"]
+    },
+
+    "ACTIVATE_STABILIZATION_PROTOCOL": {
+      "description": "Activates stabilization protocol including safety measures, essential needs support, and rapid interventions.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ASSESS_POST_STABILIZATION", "REJECT"]
+    },
+
+    "ASSESS_POST_STABILIZATION": {
+      "description": "Evaluates user condition after stabilization actions to determine next steps.",
+      "validators": ["validator.score"],
+      "transitions": ["RESTORE_BASELINE_SUPPORT", "ESCALATE_SUPPORT_PLAN", "REJECT"]
+    },
+
+    "RESTORE_BASELINE_SUPPORT": {
+      "description": "Restores user to baseline support routines and prepares for follow-up monitoring.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "ESCALATE_SUPPORT_PLAN": {
+      "description": "Escalates to a new or updated support plan if stabilization is insufficient.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE_ESCALATION", "REJECT"]
+    },
+
+    "COMPLETE_ESCALATION": {
+      "description": "Escalation completed. User routed to wellbeing.support-plan.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Stabilization complete. User returned to baseline and ready for follow-up.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Stabilization cannot proceed due to missing or invalid data
