@@ -1,0 +1,166 @@
+{
+  "id": "community.moderation",
+  "version": "1.0.0",
+  "description": "Non-punitive, dignity-preserving moderation workflow for handling boundary issues, safety concerns, misinformation, and community standards alignment.",
+  "domain": "community",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when a moderation-relevant event occurs or is reported.",
+      "transitions": ["CAPTURE_EVENT"]
+    },
+
+    "CAPTURE_EVENT": {
+      "description": "Captures the moderation event: source, participants, content, context, and channel.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CLASSIFY_EVENT", "REJECT"]
+    },
+
+    "CLASSIFY_EVENT": {
+      "description": "Classifies event type: boundary issue, misinformation, safety concern, conflict-adjacent, or standards misalignment.",
+      "validators": ["validator.workflow"],
+      "transitions": ["DETERMINE_SENSITIVITY", "REJECT"]
+    },
+
+    "DETERMINE_SENSITIVITY": {
+      "description": "Determines sensitivity level: routine, sensitive, or high-risk.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ROUTE_EVENT", "REJECT"]
+    },
+
+    "ROUTE_EVENT": {
+      "description": "Routes event to appropriate handling path: clarification, supportive correction, restorative conversation, wellbeing-check, or escalation-review.",
+      "validators": ["validator.workflow"],
+      "transitions": ["HANDLE_EVENT", "REJECT"]
+    },
+
+    "HANDLE_EVENT": {
+      "description": "Executes the moderation action: clarify, correct, mediate, support, or escalate with dignity-preserving framing.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CAPTURE_OUTCOME", "REJECT"]
+    },
+
+    "CAPTURE_OUTCOME": {
+      "description": "Captures outcome: resolved, partially-resolved, referred, escalated, or archived with rationale.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Moderation cycle complete. Event recorded for audit, learning, and pattern analysis.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Moderation event could not be processed due to missing or invalid data. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_CAPTURE_EVENT": {
+      "from": "START",
+      "to": "CAPTURE_EVENT",
+      "conditions": []
+    },
+
+    "CAPTURE_EVENT_TO_CLASSIFY_EVENT": {
+      "from": "CAPTURE_EVENT",
+      "to": "CLASSIFY_EVENT",
+      "conditions": ["event.captured"]
+    },
+
+    "CAPTURE_EVENT_TO_REJECT": {
+      "from": "CAPTURE_EVENT",
+      "to": "REJECT",
+      "conditions": ["event.missing"]
+    },
+
+    "CLASSIFY_EVENT_TO_DETERMINE_SENSITIVITY": {
+      "from": "CLASSIFY_EVENT",
+      "to": "DETERMINE_SENSITIVITY",
+      "conditions": ["event.classified"]
+    },
+
+    "CLASSIFY_EVENT_TO_REJECT": {
+      "from": "CLASSIFY_EVENT",
+      "to": "REJECT",
+      "conditions": ["event.classification_failed"]
+    },
+
+    "DETERMINE_SENSITIVITY_TO_ROUTE_EVENT": {
+      "from": "DETERMINE_SENSITIVITY",
+      "to": "ROUTE_EVENT",
+      "conditions": ["sensitivity.defined"]
+    },
+
+    "DETERMINE_SENSITIVITY_TO_REJECT": {
+      "from": "DETERMINE_SENSITIVITY",
+      "to": "REJECT",
+      "conditions": ["sensitivity.invalid"]
+    },
+
+    "ROUTE_EVENT_TO_HANDLE_EVENT": {
+      "from": "ROUTE_EVENT",
+      "to": "HANDLE_EVENT",
+      "conditions": ["route.assigned"]
+    },
+
+    "ROUTE_EVENT_TO_REJECT": {
+      "from": "ROUTE_EVENT",
+      "to": "REJECT",
+      "conditions": ["route.assignment_failed"]
+    },
+
+    "HANDLE_EVENT_TO_CAPTURE_OUTCOME": {
+      "from": "HANDLE_EVENT",
+      "to": "CAPTURE_OUTCOME",
+      "conditions": ["handling.completed"]
+    },
+
+    "HANDLE_EVENT_TO_REJECT": {
+      "from": "HANDLE_EVENT",
+      "to": "REJECT",
+      "conditions": ["handling.failed"]
+    },
+
+    "CAPTURE_OUTCOME_TO_COMPLETE": {
+      "from": "CAPTURE_OUTCOME",
+      "to": "COMPLETE",
+      "conditions": ["outcome.recorded"]
+    },
+
+    "CAPTURE_OUTCOME_TO_REJECT": {
+      "from": "CAPTURE_OUTCOME",
+      "to": "REJECT",
+      "conditions": ["outcome.record_failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "community.moderation.event-captured",
+        "community.moderation.classified",
+        "community.moderation.sensitivity-determined",
+        "community.moderation.routed",
+        "community.moderation.handled",
+        "community.moderation.outcome-recorded",
+        "community.moderation.complete",
+        "community.moderation.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "community",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Community Standard"
+  }
+}
