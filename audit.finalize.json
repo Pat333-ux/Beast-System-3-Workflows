@@ -1,0 +1,148 @@
+{
+  "id": "audit.finalize",
+  "version": "1.0.0",
+  "description": "Finalizes the audit chain after validation and corrective actions. Seals the chain, anchors the final hash, updates lifecycle status, and issues a finalization certificate.",
+  "domain": "audit",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when chain validation and corrective actions are complete.",
+      "transitions": ["VERIFY_READY"]
+    },
+
+    "VERIFY_READY": {
+      "description": "Verifies that the audit chain is validated, discrepancies resolved, and corrective actions completed.",
+      "validators": ["validator.audit"],
+      "transitions": ["SEAL_CHAIN", "REJECT"]
+    },
+
+    "SEAL_CHAIN": {
+      "description": "Seals the audit chain by generating the finalChainHash and locking the chain state.",
+      "validators": ["validator.crypto"],
+      "transitions": ["ANCHOR_FINAL_HASH", "REJECT"]
+    },
+
+    "ANCHOR_FINAL_HASH": {
+      "description": "Anchors the finalChainHash to the registry or external anchor (blockchain, ledger, or authority).",
+      "validators": ["validator.audit"],
+      "transitions": ["UPDATE_LIFECYCLE", "REJECT"]
+    },
+
+    "UPDATE_LIFECYCLE": {
+      "description": "Updates the audit lifecycle status to 'finalized' and records the finalization metadata.",
+      "validators": ["validator.audit"],
+      "transitions": ["ISSUE_FINALIZATION_CERTIFICATE", "REJECT"]
+    },
+
+    "ISSUE_FINALIZATION_CERTIFICATE": {
+      "description": "Generates a finalization certificate containing the finalChainHash, timestamp, and anchor reference.",
+      "validators": ["validator.audit"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Audit chain successfully finalized and sealed. No further modifications permitted.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Finalization failed due to missing prerequisites or validation errors. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_VERIFY_READY": {
+      "from": "START",
+      "to": "VERIFY_READY",
+      "conditions": []
+    },
+
+    "VERIFY_READY_TO_SEAL_CHAIN": {
+      "from": "VERIFY_READY",
+      "to": "SEAL_CHAIN",
+      "conditions": ["audit.ready"]
+    },
+
+    "VERIFY_READY_TO_REJECT": {
+      "from": "VERIFY_READY",
+      "to": "REJECT",
+      "conditions": ["audit.not_ready"]
+    },
+
+    "SEAL_CHAIN_TO_ANCHOR_FINAL_HASH": {
+      "from": "SEAL_CHAIN",
+      "to": "ANCHOR_FINAL_HASH",
+      "conditions": ["chain.sealed"]
+    },
+
+    "SEAL_CHAIN_TO_REJECT": {
+      "from": "SEAL_CHAIN",
+      "to": "REJECT",
+      "conditions": ["chain.seal_failed"]
+    },
+
+    "ANCHOR_FINAL_HASH_TO_UPDATE_LIFECYCLE": {
+      "from": "ANCHOR_FINAL_HASH",
+      "to": "UPDATE_LIFECYCLE",
+      "conditions": ["anchor.success"]
+    },
+
+    "ANCHOR_FINAL_HASH_TO_REJECT": {
+      "from": "ANCHOR_FINAL_HASH",
+      "to": "REJECT",
+      "conditions": ["anchor.failed"]
+    },
+
+    "UPDATE_LIFECYCLE_TO_ISSUE_FINALIZATION_CERTIFICATE": {
+      "from": "UPDATE_LIFECYCLE",
+      "to": "ISSUE_FINALIZATION_CERTIFICATE",
+      "conditions": ["lifecycle.updated"]
+    },
+
+    "UPDATE_LIFECYCLE_TO_REJECT": {
+      "from": "UPDATE_LIFECYCLE",
+      "to": "REJECT",
+      "conditions": ["lifecycle.update_failed"]
+    },
+
+    "ISSUE_FINALIZATION_CERTIFICATE_TO_COMPLETE": {
+      "from": "ISSUE_FINALIZATION_CERTIFICATE",
+      "to": "COMPLETE",
+      "conditions": ["certificate.issued"]
+    },
+
+    "ISSUE_FINALIZATION_CERTIFICATE_TO_REJECT": {
+      "from": "ISSUE_FINALIZATION_CERTIFICATE",
+      "to": "REJECT",
+      "conditions": ["certificate.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "audit.finalize.ready",
+        "audit.finalize.chain-sealed",
+        "audit.finalize.hash-anchored",
+        "audit.finalize.lifecycle-updated",
+        "audit.finalize.certificate-issued",
+        "audit.finalize.complete",
+        "audit.finalize.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "audit",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Audit Standard"
+  }
+}
