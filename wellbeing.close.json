@@ -1,0 +1,128 @@
+{
+  "id": "wellbeing.close",
+  "version": "1.0.0",
+  "description": "Final closure workflow for wellbeing cases. Verifies completion of interventions, archives records, updates lifecycle status, and issues closure confirmation.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered after wellbeing.support-plan, wellbeing.stabilization, and/or wellbeing.follow-up indicate completion.",
+      "transitions": ["VERIFY_COMPLETION"]
+    },
+
+    "VERIFY_COMPLETION": {
+      "description": "Verifies that all required wellbeing interventions, follow-ups, and stabilization steps are complete.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ARCHIVE_RECORD", "REJECT"]
+    },
+
+    "ARCHIVE_RECORD": {
+      "description": "Archives the wellbeing case, generates a final audit snapshot, and seals the record.",
+      "validators": ["validator.workflow"],
+      "transitions": ["UPDATE_LIFECYCLE_STATUS", "REJECT"]
+    },
+
+    "UPDATE_LIFECYCLE_STATUS": {
+      "description": "Updates the user's wellbeing lifecycle status to reflect closure and current stability.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ISSUE_CLOSURE_CONFIRMATION", "REJECT"]
+    },
+
+    "ISSUE_CLOSURE_CONFIRMATION": {
+      "description": "Issues closure confirmation to the user and relevant system components, logging the final event.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Wellbeing case fully closed. No further action required.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Closure cannot proceed due to missing data or unresolved items. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_VERIFY_COMPLETION": {
+      "from": "START",
+      "to": "VERIFY_COMPLETION",
+      "conditions": []
+    },
+
+    "VERIFY_COMPLETION_TO_ARCHIVE_RECORD": {
+      "from": "VERIFY_COMPLETION",
+      "to": "ARCHIVE_RECORD",
+      "conditions": ["interventions.complete", "followup.complete", "stabilization.complete"]
+    },
+
+    "VERIFY_COMPLETION_TO_REJECT": {
+      "from": "VERIFY_COMPLETION",
+      "to": "REJECT",
+      "conditions": ["interventions.incomplete", "followup.incomplete", "stabilization.incomplete"]
+    },
+
+    "ARCHIVE_RECORD_TO_UPDATE_LIFECYCLE_STATUS": {
+      "from": "ARCHIVE_RECORD",
+      "to": "UPDATE_LIFECYCLE_STATUS",
+      "conditions": ["archive.success"]
+    },
+
+    "ARCHIVE_RECORD_TO_REJECT": {
+      "from": "ARCHIVE_RECORD",
+      "to": "REJECT",
+      "conditions": ["archive.failed"]
+    },
+
+    "UPDATE_LIFECYCLE_STATUS_TO_ISSUE_CLOSURE_CONFIRMATION": {
+      "from": "UPDATE_LIFECYCLE_STATUS",
+      "to": "ISSUE_CLOSURE_CONFIRMATION",
+      "conditions": ["lifecycle.updated"]
+    },
+
+    "UPDATE_LIFECYCLE_STATUS_TO_REJECT": {
+      "from": "UPDATE_LIFECYCLE_STATUS",
+      "to": "REJECT",
+      "conditions": ["lifecycle.update_failed"]
+    },
+
+    "ISSUE_CLOSURE_CONFIRMATION_TO_COMPLETE": {
+      "from": "ISSUE_CLOSURE_CONFIRMATION",
+      "to": "COMPLETE",
+      "conditions": ["closure.notice_sent"]
+    },
+
+    "ISSUE_CLOSURE_CONFIRMATION_TO_REJECT": {
+      "from": "ISSUE_CLOSURE_CONFIRMATION",
+      "to": "REJECT",
+      "conditions": ["closure.notice_failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "standard"
+    },
+    "audit": {
+      "captureEvents": [
+        "wellbeing.close.verify-completion",
+        "wellbeing.close.archived",
+        "wellbeing.close.lifecycle-updated",
+        "wellbeing.close.closure-confirmed",
+        "wellbeing.close.complete",
+        "wellbeing.close.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "wellbeing",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Wellbeing Standard"
+  }
+}
