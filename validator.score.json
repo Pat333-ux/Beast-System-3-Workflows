@@ -1,0 +1,184 @@
+{
+  "id": "validator.score",
+  "version": "1.0.0",
+  "description": "Score validator for Beast System 3.0. Ensures structural integrity, threshold correctness, deterministic scoring, and audit compliance for all score-based evaluations.",
+  "domain": "scoring",
+  "lastUpdated": "2026-05-03",
+
+  "validationGroups": {
+    "structure": {
+      "description": "Ensures score object contains required fields and valid formats.",
+      "rules": [
+        {
+          "id": "score.required_fields",
+          "type": "required",
+          "fields": ["id", "type", "value", "scale", "computedAt"],
+          "error": "Missing required score fields."
+        },
+        {
+          "id": "score.type_valid",
+          "type": "enum",
+          "field": "type",
+          "allowed": [
+            "WELLBEING",
+            "TRUST",
+            "RISK",
+            "ASSESSMENT",
+            "COMPOSITE"
+          ],
+          "error": "Invalid score type."
+        },
+        {
+          "id": "score.scale_valid",
+          "type": "schema",
+          "schemaRef": "score.scale.schema",
+          "error": "Score scale invalid."
+        }
+      ]
+    },
+
+    "value": {
+      "description": "Ensures score value is within allowed range and correctly typed.",
+      "rules": [
+        {
+          "id": "score.value_numeric",
+          "type": "number",
+          "field": "value",
+          "error": "Score value must be numeric."
+        },
+        {
+          "id": "score.value_within_scale",
+          "type": "custom",
+          "handler": "scoreWithinScaleCheck",
+          "error": "Score value outside allowed scale."
+        }
+      ]
+    },
+
+    "thresholds": {
+      "description": "Ensures thresholds are valid, ordered, and consistent.",
+      "rules": [
+        {
+          "id": "score.thresholds_valid",
+          "type": "schema",
+          "schemaRef": "score.thresholds.schema",
+          "error": "Score thresholds invalid."
+        },
+        {
+          "id": "score.threshold_order_valid",
+          "type": "custom",
+          "handler": "scoreThresholdOrderCheck",
+          "error": "Score thresholds out of order."
+        }
+      ]
+    },
+
+    "determinism": {
+      "description": "Ensures the score was computed deterministically and reproducibly.",
+      "rules": [
+        {
+          "id": "score.algorithm_valid",
+          "type": "enum",
+          "field": "algorithm",
+          "allowed": [
+            "LINEAR",
+            "WEIGHTED",
+            "COMPOSITE",
+            "RISK_MODEL",
+            "WELLBEING_MODEL",
+            "TRUST_MODEL"
+          ],
+          "error": "Invalid scoring algorithm."
+        },
+        {
+          "id": "score.reproducible",
+          "type": "custom",
+          "handler": "scoreReproducibilityCheck",
+          "error": "Score computation not reproducible."
+        }
+      ]
+    },
+
+    "consistency": {
+      "description": "Ensures cross-field consistency between score, identity, and case data.",
+      "rules": [
+        {
+          "id": "score.identity_consistency",
+          "type": "custom",
+          "handler": "scoreIdentityConsistencyCheck",
+          "error": "Score inconsistent with identity attributes."
+        },
+        {
+          "id": "score.case_consistency",
+          "type": "custom",
+          "handler": "scoreCaseConsistencyCheck",
+          "error": "Score inconsistent with case attributes."
+        }
+      ]
+    },
+
+    "fraudSignals": {
+      "description": "Detects tampering, manipulation, or suspicious scoring metadata.",
+      "rules": [
+        {
+          "id": "score.fraud_flags_valid",
+          "type": "enumList",
+          "field": "fraud.flags",
+          "allowed": ["NONE", "LOW", "MEDIUM", "HIGH"],
+          "error": "Invalid fraud flags."
+        },
+        {
+          "id": "score.no_high_risk_fraud",
+          "type": "custom",
+          "handler": "scoreFraudRiskCheck",
+          "error": "High-risk fraud indicators detected."
+        }
+      ]
+    }
+  },
+
+  "evaluation": {
+    "mode": "deterministic",
+    "order": [
+      "structure",
+      "value",
+      "thresholds",
+      "determinism",
+      "consistency",
+      "fraudSignals"
+    ],
+    "stopOnFailure": true
+  },
+
+  "outputs": {
+    "valid": {
+      "status": "VALID",
+      "emit": ["score.validated"]
+    },
+    "invalid": {
+      "status": "INVALID",
+      "emit": ["score.validation_failed"],
+      "includeErrors": true
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "score.validation.started",
+        "score.validation.completed",
+        "score.validation.failed"
+      ]
+    }
+  },
+
+  "metadata": {
+    "validatorType": "score",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Scoring Standard"
+  }
+}
