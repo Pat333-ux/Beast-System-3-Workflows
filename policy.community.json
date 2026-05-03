@@ -1,0 +1,238 @@
+{
+  "id": "policy.community",
+  "version": "1.0.0",
+  "description": "Global community policy for Beast System 3.0. Defines standards for participation, interaction, safety, dignity, moderation, and exit.",
+  "domain": "community",
+  "lastUpdated": "2026-05-03",
+
+  "principles": {
+    "nonPunitive": true,
+    "dignityPreserving": true,
+    "traumaPreventive": true,
+    "supportFirst": true,
+    "clearBoundaries": true,
+    "predictableProcesses": true,
+    "auditRequired": true,
+    "crossDomainConsistency": true
+  },
+
+  "participation": {
+    "rights": [
+      "right_to_be_heard",
+      "right_to_safe_interaction",
+      "right_to_dignity",
+      "right_to_explanation",
+      "right_to_support",
+      "right_to_exit_voluntarily"
+    ],
+    "responsibilities": [
+      "engage_respectfully",
+      "avoid_harmful_behavior",
+      "participate_in_good_faith",
+      "respect_boundaries",
+      "follow_community_guidelines"
+    ],
+    "prohibitedPractices": [
+      "harassment",
+      "threats",
+      "coercion",
+      "hate_speech",
+      "doxxing",
+      "non_consenting_data_sharing"
+    ]
+  },
+
+  "entry": {
+    "workflow": "community.entry",
+    "requirements": [
+      "identity.initialized",
+      "consent.confirmed"
+    ],
+    "safeguards": [
+      "clear_explanation_of_community_standards",
+      "no_gatekeeping_based_on_status",
+      "support_for_new_members"
+    ]
+  },
+
+  "interaction": {
+    "workflow": "community.interaction",
+    "allowed": [
+      "conversation",
+      "requests_for_help",
+      "offers_of_support",
+      "collaboration",
+      "feedback",
+      "conflict_resolution_attempts"
+    ],
+    "prohibited": [
+      "abusive_language",
+      "targeted_harassment",
+      "manipulation",
+      "exploitation",
+      "misinformation_spread"
+    ],
+    "safeguards": [
+      "context_over_content",
+      "assume_good_faith_until_evidence",
+      "avoid_public_shaming",
+      "supportive_intervention_before_moderation"
+    ]
+  },
+
+  "moderation": {
+    "workflow": "community.moderation",
+    "principles": {
+      "leastIntrusiveFirst": true,
+      "supportBeforeRestriction": true,
+      "explanationRequired": true,
+      "appealAvailable": true
+    },
+    "actions": {
+      "L0_CLARIFICATION": {
+        "description": "Gentle clarification or reminder.",
+        "allowed": ["clarification_request", "guideline_reminder"],
+        "safeguards": ["no_public_callout", "respectful_tone"]
+      },
+      "L1_SUPPORTIVE_INTERVENTION": {
+        "description": "Support-first intervention to prevent escalation.",
+        "allowed": ["support_offer", "redirect", "private_check_in"],
+        "safeguards": ["avoid_blame", "focus_on_needs"]
+      },
+      "L2_BOUNDARY_SETTING": {
+        "description": "Clear boundary-setting when behavior impacts others.",
+        "allowed": ["behavioral_request", "structured_conversation"],
+        "safeguards": ["explain_rationale", "avoid_threats"]
+      },
+      "L3_FORMAL_REVIEW": {
+        "description": "Formal review by community stewards.",
+        "allowed": ["review_meeting", "case_linkage"],
+        "safeguards": ["document_context", "offer_response_opportunity"]
+      },
+      "L4_LIMITED_ACCESS": {
+        "description": "Temporary access limits for safety or wellbeing.",
+        "allowed": ["temporary_channel_limit", "cooldown_period"],
+        "safeguards": [
+          "time_limited",
+          "non_punitive",
+          "explanation_required",
+          "review_required"
+        ]
+      }
+    }
+  },
+
+  "safety": {
+    "integration": "wellbeing + safety engines",
+    "triggers": [
+      "safety.concern",
+      "wellbeing.risk_detected",
+      "pattern_of_harmful_interactions"
+    ],
+    "actions": [
+      "wellbeing_check_in",
+      "support_plan",
+      "stabilization_referral"
+    ],
+    "safeguards": [
+      "no_assumption_of_malice",
+      "avoid_labeling",
+      "minimize_exposure_of_sensitive_details"
+    ]
+  },
+
+  "conflictResolution": {
+    "principles": [
+      "repair_over_blame",
+      "dialogue_over_punishment",
+      "voluntary_where_possible",
+      "structured_when_needed"
+    ],
+    "methods": [
+      "facilitated_conversation",
+      "mutual_understanding_session",
+      "needs_based_resolution",
+      "supportive_mediation"
+    ],
+    "prohibited": [
+      "forced_apologies",
+      "public_shaming",
+      "retaliatory_actions"
+    ]
+  },
+
+  "exit": {
+    "workflow": "community.exit",
+    "types": {
+      "VOLUNTARY": {
+        "description": "User chooses to leave.",
+        "safeguards": ["no_penalty", "offer_closure_summary"]
+      },
+      "ADMINISTRATIVE": {
+        "description": "Exit due to safety or wellbeing concerns.",
+        "safeguards": [
+          "document_rationale",
+          "review_required",
+          "non_punitive_language",
+          "offer_reentry_path_when_safe"
+        ]
+      },
+      "LIFECYCLE_COMPLETION": {
+        "description": "Exit due to completion of purpose or program.",
+        "safeguards": ["closure_summary", "optional_follow_up"]
+      }
+    }
+  },
+
+  "integration": {
+    "lifecycleBindings": [
+      "community.entry",
+      "community.interaction",
+      "community.moderation",
+      "community.exit"
+    ],
+    "stateMachineBindings": [
+      "community.interaction.state-machine",
+      "community.moderation.state-machine",
+      "community.exit.state-machine"
+    ],
+    "validators": [
+      "validator.workflow",
+      "validator.identity",
+      "validator.score"
+    ]
+  },
+
+  "audit": {
+    "captureEvents": [
+      "community.entry.started",
+      "community.entry.completed",
+      "community.interaction.event",
+      "community.moderation.action",
+      "community.exit.completed"
+    ],
+    "requiredFields": [
+      "community.id",
+      "user.id",
+      "action",
+      "context",
+      "timestamp",
+      "rationale"
+    ]
+  },
+
+  "invariants": {
+    "mustBeSupportive": true,
+    "mustBeNonPunitive": true,
+    "mustBeDignityPreserving": true,
+    "mustAvoidPublicShaming": true,
+    "mustPreferLowerInterventionWhenAdequate": true,
+    "mustBeReviewable": true
+  },
+
+  "metadata": {
+    "policyType": "community",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Community Standard"
+  }
+}
