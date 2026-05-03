@@ -1,0 +1,147 @@
+{
+  "id": "community.entry",
+  "version": "1.0.0",
+  "description": "Defines the structured, dignity-preserving entry workflow for individuals joining the community system. Establishes identity, consent, wellbeing baseline, and initial support pathways.",
+  "domain": "community",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when a new individual initiates contact or is referred into the community system.",
+      "transitions": ["IDENTITY_INITIALIZATION"]
+    },
+
+    "IDENTITY_INITIALIZATION": {
+      "description": "Collects or confirms identity details, preferred name, communication needs, and accessibility requirements.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CONSENT_AND_RIGHTS", "REJECT"]
+    },
+
+    "CONSENT_AND_RIGHTS": {
+      "description": "Presents community rights, protections, and consent options. Ensures the individual understands their autonomy and boundaries.",
+      "validators": ["validator.workflow"],
+      "transitions": ["BASELINE_WELLBEING_CHECK", "REJECT"]
+    },
+
+    "BASELINE_WELLBEING_CHECK": {
+      "description": "Performs a light wellbeing baseline scan to identify immediate needs or risks.",
+      "validators": ["validator.score"],
+      "transitions": ["ASSIGN_ENTRY_PATHWAY", "REJECT"]
+    },
+
+    "ASSIGN_ENTRY_PATHWAY": {
+      "description": "Assigns the individual to an entry pathway: general onboarding, supportive onboarding, or accelerated stabilization.",
+      "validators": ["validator.workflow"],
+      "transitions": ["WELCOME_PACKET", "REJECT"]
+    },
+
+    "WELCOME_PACKET": {
+      "description": "Generates a personalized welcome packet including rights, expectations, support options, and community values.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Community entry complete. Individual is now recognized and connected to initial support structures.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Entry cannot proceed due to missing data or consent. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_IDENTITY_INITIALIZATION": {
+      "from": "START",
+      "to": "IDENTITY_INITIALIZATION",
+      "conditions": []
+    },
+
+    "IDENTITY_INITIALIZATION_TO_CONSENT_AND_RIGHTS": {
+      "from": "IDENTITY_INITIALIZATION",
+      "to": "CONSENT_AND_RIGHTS",
+      "conditions": ["identity.valid"]
+    },
+
+    "IDENTITY_INITIALIZATION_TO_REJECT": {
+      "from": "IDENTITY_INITIALIZATION",
+      "to": "REJECT",
+      "conditions": ["identity.invalid"]
+    },
+
+    "CONSENT_AND_RIGHTS_TO_BASELINE_WELLBEING_CHECK": {
+      "from": "CONSENT_AND_RIGHTS",
+      "to": "BASELINE_WELLBEING_CHECK",
+      "conditions": ["consent.given"]
+    },
+
+    "CONSENT_AND_RIGHTS_TO_REJECT": {
+      "from": "CONSENT_AND_RIGHTS",
+      "to": "REJECT",
+      "conditions": ["consent.denied"]
+    },
+
+    "BASELINE_WELLBEING_CHECK_TO_ASSIGN_ENTRY_PATHWAY": {
+      "from": "BASELINE_WELLBEING_CHECK",
+      "to": "ASSIGN_ENTRY_PATHWAY",
+      "conditions": ["baseline.completed"]
+    },
+
+    "BASELINE_WELLBEING_CHECK_TO_REJECT": {
+      "from": "BASELINE_WELLBEING_CHECK",
+      "to": "REJECT",
+      "conditions": ["baseline.failed"]
+    },
+
+    "ASSIGN_ENTRY_PATHWAY_TO_WELCOME_PACKET": {
+      "from": "ASSIGN_ENTRY_PATHWAY",
+      "to": "WELCOME_PACKET",
+      "conditions": ["pathway.assigned"]
+    },
+
+    "ASSIGN_ENTRY_PATHWAY_TO_REJECT": {
+      "from": "ASSIGN_ENTRY_PATHWAY",
+      "to": "REJECT",
+      "conditions": ["pathway.assignment_failed"]
+    },
+
+    "WELCOME_PACKET_TO_COMPLETE": {
+      "from": "WELCOME_PACKET",
+      "to": "COMPLETE",
+      "conditions": ["welcome.issued"]
+    },
+
+    "WELCOME_PACKET_TO_REJECT": {
+      "from": "WELCOME_PACKET",
+      "to": "REJECT",
+      "conditions": ["welcome.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "standard"
+    },
+    "audit": {
+      "captureEvents": [
+        "community.entry.identity-initialized",
+        "community.entry.consent-confirmed",
+        "community.entry.baseline-check",
+        "community.entry.pathway-assigned",
+        "community.entry.welcome-issued",
+        "community.entry.complete",
+        "community.entry.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "community",
+    "nextWorkflow": "community.onboarding",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Community Standard"
+  }
+}
