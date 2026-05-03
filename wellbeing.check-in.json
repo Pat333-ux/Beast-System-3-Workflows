@@ -1,0 +1,53 @@
+{
+  "id": "wellbeing.check-in",
+  "version": "1.0.0",
+  "description": "Performs a routine wellbeing check-in to monitor stability, detect early signals, and route support as needed.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered by schedule, user request, or system signal.",
+      "transitions": ["COLLECT_CHECKIN_DATA"]
+    },
+
+    "COLLECT_CHECKIN_DATA": {
+      "description": "Collects user-reported wellbeing indicators across core domains (housing, food, health, safety, dignity, economic stability, community).",
+      "validators": ["validator.workflow"],
+      "transitions": ["EVALUATE_STABILITY", "REJECT"]
+    },
+
+    "EVALUATE_STABILITY": {
+      "description": "Evaluates stability using deterministic scoring rules and compares against baseline and recent trends.",
+      "validators": ["validator.score"],
+      "transitions": ["GENERATE_SIGNAL", "REJECT"]
+    },
+
+    "GENERATE_SIGNAL": {
+      "description": "Generates a wellbeing signal (green, yellow, orange, red) based on stability evaluation.",
+      "validators": ["validator.score"],
+      "transitions": ["ROUTE_SUPPORT", "REJECT"]
+    },
+
+    "ROUTE_SUPPORT": {
+      "description": "Routes the user to appropriate support pathways based on signal severity.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Check-in complete. Data stored, signal logged, and support routed if needed.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Check-in failed due to missing or invalid data. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_COLLECT_CHECKIN_DATA": {
+      "from": "START",
+      "to": "COLLECT_CHECKIN_DATA",
+      "conditions
