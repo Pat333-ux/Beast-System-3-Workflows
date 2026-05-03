@@ -1,0 +1,536 @@
+{
+  "id": "transition.conditions",
+  "version": "1.0.0",
+  "description": "Canonical catalog of transition conditions used across Beast System 3.0. Defines condition semantics, input domains, evaluation types, and safety flags.",
+  "domain": "core",
+  "lastUpdated": "2026-05-03",
+
+  "conditions": [
+    {
+      "id": "identity.initialized",
+      "domain": "identity",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Identity record has been created with minimum required attributes.",
+      "inputs": ["identity.id", "identity.coreAttributes"],
+      "evaluation": "all_required_present",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "identity.verified",
+      "domain": "identity",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Identity has passed verification checks.",
+      "inputs": ["identity.verificationStatus"],
+      "evaluation": "equals:VERIFIED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "identity.invalid",
+      "domain": "identity",
+      "type": "boolean",
+      "severity": "warning",
+      "description": "Identity failed verification or contains invalid attributes.",
+      "inputs": ["identity.verificationStatus", "identity.validationErrors"],
+      "evaluation": "equals:INVALID",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "identity.retired",
+      "domain": "identity",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Identity is no longer active and is ready for archival.",
+      "inputs": ["identity.lifecycleStatus"],
+      "evaluation": "equals:RETIRED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "identity.expired",
+      "domain": "identity",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Identity verification window expired before completion.",
+      "inputs": ["identity.verificationExpiry"],
+      "evaluation": "time_before_now",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+
+    {
+      "id": "consent.confirmed",
+      "domain": "consent",
+      "type": "boolean",
+      "severity": "info",
+      "description": "User has confirmed rights, protections, and participation terms.",
+      "inputs": ["consent.status"],
+      "evaluation": "equals:CONFIRMED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "consent.denied",
+      "domain": "consent",
+      "type": "boolean",
+      "severity": "info",
+      "description": "User declined required consent.",
+      "inputs": ["consent.status"],
+      "evaluation": "equals:DENIED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "consent.updated",
+      "domain": "consent",
+      "type": "boolean",
+      "severity": "info",
+      "description": "User has updated consent after reactivation or lifecycle change.",
+      "inputs": ["consent.lastUpdatedAt", "consent.previousVersion"],
+      "evaluation": "version_incremented",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+
+    {
+      "id": "safety.concern",
+      "domain": "safety",
+      "type": "boolean",
+      "severity": "high",
+      "description": "A safety concern has been detected requiring temporary suspension or review.",
+      "inputs": ["safety.signals", "safety.flags"],
+      "evaluation": "any_flag_in:[RISK,THREAT]",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "safety.resolved",
+      "domain": "safety",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Safety concern has been resolved and user may resume normal state.",
+      "inputs": ["safety.signals", "safety.flags"],
+      "evaluation": "no_flags_in:[RISK,THREAT]",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+
+    {
+      "id": "wellbeing.risk_detected",
+      "domain": "wellbeing",
+      "type": "boolean",
+      "severity": "medium",
+      "description": "Wellbeing assessment indicates elevated risk requiring intervention.",
+      "inputs": ["wellbeing.score", "wellbeing.thresholds"],
+      "evaluation": "score_above:alertThreshold",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "wellbeing.stable",
+      "domain": "wellbeing",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Wellbeing assessment indicates stability.",
+      "inputs": ["wellbeing.score", "wellbeing.thresholds"],
+      "evaluation": "score_between:stableMin:stableMax",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "wellbeing.baseline_completed",
+      "domain": "wellbeing",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Baseline wellbeing scan completed for reactivation.",
+      "inputs": ["wellbeing.baselineStatus"],
+      "evaluation": "equals:COMPLETED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+
+    {
+      "id": "case.initialized",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Case has been created with minimum required attributes.",
+      "inputs": ["case.id", "case.coreAttributes"],
+      "evaluation": "all_required_present",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "case.classified",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Case classification completed.",
+      "inputs": ["case.type", "case.sensitivity", "case.urgency"],
+      "evaluation": "all_required_present",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "case.invalid",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "warning",
+      "description": "Case is invalid or incomplete.",
+      "inputs": ["case.validationErrors"],
+      "evaluation": "non_empty",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "case.expired",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Case expired before classification or assessment.",
+      "inputs": ["case.expiry"],
+      "evaluation": "time_before_now",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+
+    {
+      "id": "assessment.completed",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Assessment completed successfully.",
+      "inputs": ["assessment.status"],
+      "evaluation": "equals:COMPLETED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "assessment.risk_detected",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "medium",
+      "description": "Assessment detected elevated risk requiring escalation.",
+      "inputs": ["assessment.riskLevel"],
+      "evaluation": "level_at_or_above:HIGH",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "assessment.invalid",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "warning",
+      "description": "Assessment invalid or incomplete.",
+      "inputs": ["assessment.validationErrors"],
+      "evaluation": "non_empty",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+
+    {
+      "id": "action.completed",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Stewardship action completed.",
+      "inputs": ["action.status"],
+      "evaluation": "equals:COMPLETED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "action.escalation_required",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "medium",
+      "description": "Action requires escalation to higher-level workflow.",
+      "inputs": ["action.escalationFlag"],
+      "evaluation": "equals:true",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "action.invalid",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "warning",
+      "description": "Action invalid or incomplete.",
+      "inputs": ["action.validationErrors"],
+      "evaluation": "non_empty",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+
+    {
+      "id": "review.resolved",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Review confirms case is resolved.",
+      "inputs": ["review.outcome"],
+      "evaluation": "equals:RESOLVED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "review.needs_more_action",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Review indicates additional action required.",
+      "inputs": ["review.outcome"],
+      "evaluation": "equals:MORE_ACTION",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "review.escalation_required",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "medium",
+      "description": "Review requires escalation.",
+      "inputs": ["review.outcome"],
+      "evaluation": "equals:ESCALATE",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "review.invalid",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "warning",
+      "description": "Review invalid or incomplete.",
+      "inputs": ["review.validationErrors"],
+      "evaluation": "non_empty",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+
+    {
+      "id": "escalation.resolved",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Escalation resolved and case may return to review.",
+      "inputs": ["escalation.status"],
+      "evaluation": "equals:RESOLVED",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "escalation.completed",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Escalation completed and case may proceed to closure.",
+      "inputs": ["escalation.status"],
+      "evaluation": "equals:COMPLETED",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "escalation.terminal",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "high",
+      "description": "Escalation reached terminal state requiring archival.",
+      "inputs": ["escalation.status"],
+      "evaluation": "equals:TERMINAL",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "closure.finalized",
+      "domain": "case",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Case closure finalized and ready for archival.",
+      "inputs": ["closure.status"],
+      "evaluation": "equals:FINALIZED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+
+    {
+      "id": "event.created",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Event object created successfully.",
+      "inputs": ["event.id", "event.payload"],
+      "evaluation": "all_required_present",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "event.malformed",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "warning",
+      "description": "Event object malformed or missing required fields.",
+      "inputs": ["event.validationErrors"],
+      "evaluation": "non_empty",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "event.valid",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Event passed validation.",
+      "inputs": ["event.validationStatus"],
+      "evaluation": "equals:VALID",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "event.invalid",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "warning",
+      "description": "Event failed validation.",
+      "inputs": ["event.validationStatus"],
+      "evaluation": "equals:INVALID",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "metadata.enriched",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Event metadata enrichment completed.",
+      "inputs": ["event.metadataStatus"],
+      "evaluation": "equals:ENRICHED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "metadata.failed",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "warning",
+      "description": "Event metadata enrichment failed.",
+      "inputs": ["event.metadataStatus"],
+      "evaluation": "equals:FAILED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "log.entry_created",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Audit log entry successfully created.",
+      "inputs": ["log.status"],
+      "evaluation": "equals:CREATED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "log.failed",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "warning",
+      "description": "Audit log entry creation failed.",
+      "inputs": ["log.status"],
+      "evaluation": "equals:FAILED",
+      "safetyCritical": false,
+      "auditRequired": true
+    },
+    {
+      "id": "chain.linked",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Event successfully linked into audit chain.",
+      "inputs": ["chain.status"],
+      "evaluation": "equals:LINKED",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "chain.invalid",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "high",
+      "description": "Audit chain linkage invalid.",
+      "inputs": ["chain.status"],
+      "evaluation": "equals:INVALID",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "signature.applied",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Cryptographic signature applied to event.",
+      "inputs": ["signature.status"],
+      "evaluation": "equals:APPLIED",
+      "safetyCritical": true,
+      "auditRequired": true
+    },
+    {
+      "id": "event.sealed",
+      "domain": "event",
+      "type": "boolean",
+      "severity": "info",
+      "description": "Event finalized and ready for archival.",
+      "inputs": ["event.finalizationStatus"],
+      "evaluation": "equals:SEALED",
+      "safetyCritical": true,
+      "auditRequired": true
+    }
+  ],
+
+  "evaluationModes": {
+    "all_required_present": "All listed inputs must be non-null and non-empty.",
+    "equals:VERIFIED": "Input value must equal 'VERIFIED'.",
+    "equals:INVALID": "Input value must equal 'INVALID'.",
+    "equals:RETIRED": "Input value must equal 'RETIRED'.",
+    "equals:CONFIRMED": "Input value must equal 'CONFIRMED'.",
+    "equals:DENIED": "Input value must equal 'DENIED'.",
+    "equals:COMPLETED": "Input value must equal 'COMPLETED'.",
+    "equals:RESOLVED": "Input value must equal 'RESOLVED'.",
+    "equals:MORE_ACTION": "Input value must equal 'MORE_ACTION'.",
+    "equals:ESCALATE": "Input value must equal 'ESCALATE'.",
+    "equals:TERMINAL": "Input value must equal 'TERMINAL'.",
+    "equals:FINALIZED": "Input value must equal 'FINALIZED'.",
+    "equals:VALID": "Input value must equal 'VALID'.",
+    "equals:FAILED": "Input value must equal 'FAILED'.",
+    "equals:ENRICHED": "Input value must equal 'ENRICHED'.",
+    "equals:CREATED": "Input value must equal 'CREATED'.",
+    "equals:LINKED": "Input value must equal 'LINKED'.",
+    "equals:APPLIED": "Input value must equal 'APPLIED'.",
+    "time_before_now": "Timestamp input must be strictly before current system time.",
+    "score_above:alertThreshold": "Score must be greater than or equal to configured alert threshold.",
+    "score_between:stableMin:stableMax": "Score must be between configured stableMin and stableMax inclusive.",
+    "level_at_or_above:HIGH": "Risk level must be HIGH or above in the configured scale.",
+    "non_empty": "Input collection or string must be non-empty.",
+    "version_incremented": "Current version must be greater than previous version.",
+    "any_flag_in:[RISK,THREAT]": "At least one of the listed flags must be present.",
+    "no_flags_in:[RISK,THREAT]": "None of the listed flags may be present.",
+    "equals:true": "Boolean input must be true."
+  },
+
+  "invariants": {
+    "nonPunitive": true,
+    "dignityPreserving": true,
+    "deterministicEvaluation": true,
+    "sideEffectFree": true,
+    "auditLoggingRequired": true
+  },
+
+  "metadata": {
+    "conditionsetType": "transition-conditions",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Logic Standard"
+  }
+}
