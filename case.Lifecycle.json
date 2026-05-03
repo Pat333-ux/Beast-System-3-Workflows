@@ -1,0 +1,203 @@
+{
+  "id": "case.lifecycle",
+  "version": "1.0.0",
+  "description": "Defines the full lifecycle of a case within Beast System 3.0, from intake to closure and archival. Ensures trauma-preventive, dignity-preserving, and audit-ready transitions.",
+  "domain": "governance",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "INTAKE": {
+      "description": "Case is created and initial details are captured. No classification yet.",
+      "transitions": ["CLASSIFICATION", "ARCHIVED"]
+    },
+
+    "CLASSIFICATION": {
+      "description": "Case is classified by type, sensitivity, urgency, and domain. Determines routing.",
+      "validators": ["validator.case"],
+      "transitions": ["ASSESSMENT", "REJECTED", "ARCHIVED"]
+    },
+
+    "ASSESSMENT": {
+      "description": "Performs structured assessment to determine needs, risks, and required actions.",
+      "validators": ["validator.case"],
+      "transitions": ["STEWARDSHIP_ACTION", "ESCALATED", "REJECTED"]
+    },
+
+    "STEWARDSHIP_ACTION": {
+      "description": "Executes supportive, restorative, or administrative actions. Non-punitive and dignity-preserving.",
+      "validators": ["validator.case"],
+      "transitions": ["REVIEW", "ESCALATED", "REJECTED"]
+    },
+
+    "REVIEW": {
+      "description": "Evaluates whether actions resolved the case, require follow-up, or need escalation.",
+      "validators": ["validator.case"],
+      "transitions": ["CLOSURE", "STEWARDSHIP_ACTION", "ESCALATED", "REJECTED"]
+    },
+
+    "ESCALATED": {
+      "description": "Case is escalated to a higher-level workflow (wellbeing, community, audit, or external authority).",
+      "validators": ["validator.case"],
+      "transitions": ["REVIEW", "CLOSURE", "ARCHIVED"]
+    },
+
+    "CLOSURE": {
+      "description": "Case is resolved. Final review completed. Prepares for archival.",
+      "validators": ["validator.case"],
+      "transitions": ["ARCHIVED"]
+    },
+
+    "ARCHIVED": {
+      "description": "Case record sealed and preserved for audit and historical continuity. Terminal state.",
+      "terminal": true
+    },
+
+    "REJECTED": {
+      "description": "Case invalid or incomplete. Sealed but not processed further.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "INTAKE_TO_CLASSIFICATION": {
+      "from": "INTAKE",
+      "to": "CLASSIFICATION",
+      "conditions": ["case.initialized"]
+    },
+
+    "INTAKE_TO_ARCHIVED": {
+      "from": "INTAKE",
+      "to": "ARCHIVED",
+      "conditions": ["case.abandoned"]
+    },
+
+    "CLASSIFICATION_TO_ASSESSMENT": {
+      "from": "CLASSIFICATION",
+      "to": "ASSESSMENT",
+      "conditions": ["case.classified"]
+    },
+
+    "CLASSIFICATION_TO_REJECTED": {
+      "from": "CLASSIFICATION",
+      "to": "REJECTED",
+      "conditions": ["case.invalid"]
+    },
+
+    "CLASSIFICATION_TO_ARCHIVED": {
+      "from": "CLASSIFICATION",
+      "to": "ARCHIVED",
+      "conditions": ["case.expired"]
+    },
+
+    "ASSESSMENT_TO_STEWARDSHIP_ACTION": {
+      "from": "ASSESSMENT",
+      "to": "STEWARDSHIP_ACTION",
+      "conditions": ["assessment.completed"]
+    },
+
+    "ASSESSMENT_TO_ESCALATED": {
+      "from": "ASSESSMENT",
+      "to": "ESCALATED",
+      "conditions": ["assessment.risk_detected"]
+    },
+
+    "ASSESSMENT_TO_REJECTED": {
+      "from": "ASSESSMENT",
+      "to": "REJECTED",
+      "conditions": ["assessment.invalid"]
+    },
+
+    "STEWARDSHIP_ACTION_TO_REVIEW": {
+      "from": "STEWARDSHIP_ACTION",
+      "to": "REVIEW",
+      "conditions": ["action.completed"]
+    },
+
+    "STEWARDSHIP_ACTION_TO_ESCALATED": {
+      "from": "STEWARDSHIP_ACTION",
+      "to": "ESCALATED",
+      "conditions": ["action.escalation_required"]
+    },
+
+    "STEWARDSHIP_ACTION_TO_REJECTED": {
+      "from": "STEWARDSHIP_ACTION",
+      "to": "REJECTED",
+      "conditions": ["action.invalid"]
+    },
+
+    "REVIEW_TO_CLOSURE": {
+      "from": "REVIEW",
+      "to": "CLOSURE",
+      "conditions": ["review.resolved"]
+    },
+
+    "REVIEW_TO_STEWARDSHIP_ACTION": {
+      "from": "REVIEW",
+      "to": "STEWARDSHIP_ACTION",
+      "conditions": ["review.needs_more_action"]
+    },
+
+    "REVIEW_TO_ESCALATED": {
+      "from": "REVIEW",
+      "to": "ESCALATED",
+      "conditions": ["review.escalation_required"]
+    },
+
+    "REVIEW_TO_REJECTED": {
+      "from": "REVIEW",
+      "to": "REJECTED",
+      "conditions": ["review.invalid"]
+    },
+
+    "ESCALATED_TO_REVIEW": {
+      "from": "ESCALATED",
+      "to": "REVIEW",
+      "conditions": ["escalation.resolved"]
+    },
+
+    "ESCALATED_TO_CLOSURE": {
+      "from": "ESCALATED",
+      "to": "CLOSURE",
+      "conditions": ["escalation.completed"]
+    },
+
+    "ESCALATED_TO_ARCHIVED": {
+      "from": "ESCALATED",
+      "to": "ARCHIVED",
+      "conditions": ["escalation.terminal"]
+    },
+
+    "CLOSURE_TO_ARCHIVED": {
+      "from": "CLOSURE",
+      "to": "ARCHIVED",
+      "conditions": ["closure.finalized"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "case.lifecycle.intake",
+        "case.lifecycle.classified",
+        "case.lifecycle.assessed",
+        "case.lifecycle.action",
+        "case.lifecycle.review",
+        "case.lifecycle.escalated",
+        "case.lifecycle.closed",
+        "case.lifecycle.archived",
+        "case.lifecycle.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "lifecycleType": "case",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Governance Standard"
+  }
+}
