@@ -1,0 +1,178 @@
+{
+  "id": "audit.discrepancy-review",
+  "version": "1.0.0",
+  "description": "Conducts forensic review of audit discrepancies, including structural mismatches, hash inconsistencies, signature failures, and anchoring anomalies. Produces verified findings and corrective directives.",
+  "domain": "audit",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when any audit component reports a discrepancy.",
+      "transitions": ["LOAD_DISCREPANCY"]
+    },
+
+    "LOAD_DISCREPANCY": {
+      "description": "Loads discrepancy details, affected entries, chain segments, and metadata.",
+      "validators": ["validator.audit"],
+      "transitions": ["CLASSIFY_DISCREPANCY", "REJECT"]
+    },
+
+    "CLASSIFY_DISCREPANCY": {
+      "description": "Classifies discrepancy type: structural, cryptographic, chronological, anchoring, or unknown.",
+      "validators": ["validator.audit"],
+      "transitions": ["FORENSIC_ANALYSIS", "REJECT"]
+    },
+
+    "FORENSIC_ANALYSIS": {
+      "description": "Performs deep forensic analysis including hash recomputation, signature verification, chain traversal, and metadata comparison.",
+      "validators": ["validator.crypto"],
+      "transitions": ["DETERMINE_IMPACT", "REJECT"]
+    },
+
+    "DETERMINE_IMPACT": {
+      "description": "Determines scope and severity: isolated entry, chain segment, full chain, or systemic.",
+      "validators": ["validator.audit"],
+      "transitions": ["ISSUE_CORRECTIVE_DIRECTIVES", "ESCALATE", "REJECT"]
+    },
+
+    "ISSUE_CORRECTIVE_DIRECTIVES": {
+      "description": "Issues corrective directives such as re-anchoring, re-signing, chain repair, or administrative review.",
+      "validators": ["validator.audit"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "ESCALATE": {
+      "description": "Escalates to audit.chain-validation, audit-record rebuild, or administrative oversight if discrepancy exceeds local repair capacity.",
+      "validators": ["validator.audit"],
+      "transitions": ["COMPLETE_ESCALATION", "REJECT"]
+    },
+
+    "COMPLETE_ESCALATION": {
+      "description": "Escalation completed. Discrepancy routed to higher-level audit processes.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Discrepancy resolved with corrective directives applied.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Discrepancy review failed due to missing or invalid data. Requires administrative intervention.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_LOAD_DISCREPANCY": {
+      "from": "START",
+      "to": "LOAD_DISCREPANCY",
+      "conditions": []
+    },
+
+    "LOAD_DISCREPANCY_TO_CLASSIFY_DISCREPANCY": {
+      "from": "LOAD_DISCREPANCY",
+      "to": "CLASSIFY_DISCREPANCY",
+      "conditions": ["discrepancy.loaded"]
+    },
+
+    "LOAD_DISCREPANCY_TO_REJECT": {
+      "from": "LOAD_DISCREPANCY",
+      "to": "REJECT",
+      "conditions": ["discrepancy.load_failed"]
+    },
+
+    "CLASSIFY_DISCREPANCY_TO_FORENSIC_ANALYSIS": {
+      "from": "CLASSIFY_DISCREPANCY",
+      "to": "FORENSIC_ANALYSIS",
+      "conditions": ["classification.complete"]
+    },
+
+    "CLASSIFY_DISCREPANCY_TO_REJECT": {
+      "from": "CLASSIFY_DISCREPANCY",
+      "to": "REJECT",
+      "conditions": ["classification.invalid"]
+    },
+
+    "FORENSIC_ANALYSIS_TO_DETERMINE_IMPACT": {
+      "from": "FORENSIC_ANALYSIS",
+      "to": "DETERMINE_IMPACT",
+      "conditions": ["forensics.complete"]
+    },
+
+    "FORENSIC_ANALYSIS_TO_REJECT": {
+      "from": "FORENSIC_ANALYSIS",
+      "to": "REJECT",
+      "conditions": ["forensics.failed"]
+    },
+
+    "DETERMINE_IMPACT_TO_ISSUE_CORRECTIVE_DIRECTIVES": {
+      "from": "DETERMINE_IMPACT",
+      "to": "ISSUE_CORRECTIVE_DIRECTIVES",
+      "conditions": ["impact.local"]
+    },
+
+    "DETERMINE_IMPACT_TO_ESCALATE": {
+      "from": "DETERMINE_IMPACT",
+      "to": "ESCALATE",
+      "conditions": ["impact.systemic"]
+    },
+
+    "DETERMINE_IMPACT_TO_REJECT": {
+      "from": "DETERMINE_IMPACT",
+      "to": "REJECT",
+      "conditions": ["impact.invalid"]
+    },
+
+    "ISSUE_CORRECTIVE_DIRECTIVES_TO_COMPLETE": {
+      "from": "ISSUE_CORRECTIVE_DIRECTIVES",
+      "to": "COMPLETE",
+      "conditions": ["directives.issued"]
+    },
+
+    "ISSUE_CORRECTIVE_DIRECTIVES_TO_REJECT": {
+      "from": "ISSUE_CORRECTIVE_DIRECTIVES",
+      "to": "REJECT",
+      "conditions": ["directives.failed"]
+    },
+
+    "ESCALATE_TO_COMPLETE_ESCALATION": {
+      "from": "ESCALATE",
+      "to": "COMPLETE_ESCALATION",
+      "conditions": ["escalation.routed"]
+    },
+
+    "ESCALATE_TO_REJECT": {
+      "from": "ESCALATE",
+      "to": "REJECT",
+      "conditions": ["escalation.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "audit.discrepancy.loaded",
+        "audit.discrepancy.classified",
+        "audit.discrepancy.forensics",
+        "audit.discrepancy.impact-determined",
+        "audit.discrepancy.corrective-issued",
+        "audit.discrepancy.escalated",
+        "audit.discrepancy.complete",
+        "audit.discrepancy.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "audit",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Audit Standard"
+  }
+}
