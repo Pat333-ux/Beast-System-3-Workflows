@@ -1,0 +1,109 @@
+{
+  "id": "verification.biometric",
+  "version": "1.0.0",
+  "description": "Performs biometric verification to confirm user identity using validated biometric data sources.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User arrives from verification.document-check.",
+      "transitions": ["CAPTURE_BIOMETRICS"]
+    },
+
+    "CAPTURE_BIOMETRICS": {
+      "description": "Captures biometric data (e.g., facial, fingerprint, or other approved modalities).",
+      "validators": ["validator.identity"],
+      "transitions": ["MATCH_BIOMETRICS", "REJECT"]
+    },
+
+    "MATCH_BIOMETRICS": {
+      "description": "Matches captured biometrics against verified identity records.",
+      "validators": ["validator.identity"],
+      "transitions": ["ANTI_SPOOFING_CHECK", "REJECT"]
+    },
+
+    "ANTI_SPOOFING_CHECK": {
+      "description": "Performs anti-spoofing and liveness detection to ensure biometric authenticity.",
+      "validators": ["validator.identity"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "REJECT": {
+      "description": "Biometric verification failed. Workflow terminates.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Biometric verification successful. Workflow hands off to verification.residency.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_CAPTURE_BIOMETRICS": {
+      "from": "START",
+      "to": "CAPTURE_BIOMETRICS",
+      "conditions": []
+    },
+
+    "CAPTURE_BIOMETRICS_TO_MATCH_BIOMETRICS": {
+      "from": "CAPTURE_BIOMETRICS",
+      "to": "MATCH_BIOMETRICS",
+      "conditions": ["biometric.captured"]
+    },
+
+    "CAPTURE_BIOMETRICS_TO_REJECT": {
+      "from": "CAPTURE_BIOMETRICS",
+      "to": "REJECT",
+      "conditions": ["biometric.capture_failed"]
+    },
+
+    "MATCH_BIOMETRICS_TO_ANTI_SPOOFING_CHECK": {
+      "from": "MATCH_BIOMETRICS",
+      "to": "ANTI_SPOOFING_CHECK",
+      "conditions": ["biometric.match"]
+    },
+
+    "MATCH_BIOMETRICS_TO_REJECT": {
+      "from": "MATCH_BIOMETRICS",
+      "to": "REJECT",
+      "conditions": ["biometric.no_match"]
+    },
+
+    "ANTI_SPOOFING_CHECK_TO_COMPLETE": {
+      "from": "ANTI_SPOOFING_CHECK",
+      "to": "COMPLETE",
+      "conditions": ["biometric.authentic"]
+    },
+
+    "ANTI_SPOOFING_CHECK_TO_REJECT": {
+      "from": "ANTI_SPOOFING_CHECK",
+      "to": "REJECT",
+      "conditions": ["biometric.spoof_detected"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "verification.biometric-captured",
+        "verification.biometric-matched",
+        "verification.biometric-anti-spoofing",
+        "verification.biometric-complete"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "verification",
+    "nextWorkflow": "verification.residency",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
