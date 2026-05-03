@@ -1,0 +1,128 @@
+{
+  "id": "onboarding.identity-verification",
+  "version": "1.0.0",
+  "description": "Performs identity verification during onboarding, including document validation, biometric checks, residency confirmation, and trust-score initialization.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User arrives from onboarding.start handoff.",
+      "transitions": ["DOCUMENT_CHECK"]
+    },
+
+    "DOCUMENT_CHECK": {
+      "description": "Validates submitted identity documents for authenticity and completeness.",
+      "validators": ["validator.document"],
+      "transitions": ["BIOMETRIC_CHECK", "REJECT"]
+    },
+
+    "BIOMETRIC_CHECK": {
+      "description": "Performs biometric verification to confirm user identity.",
+      "validators": ["validator.identity"],
+      "transitions": ["RESIDENCY_CHECK", "REJECT"]
+    },
+
+    "RESIDENCY_CHECK": {
+      "description": "Confirms residency information and cross-references address data.",
+      "validators": ["validator.document"],
+      "transitions": ["TRUST_SCORE_INIT", "REJECT"]
+    },
+
+    "TRUST_SCORE_INIT": {
+      "description": "Initializes the user's trust score based on verified identity attributes.",
+      "validators": ["validator.score"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "REJECT": {
+      "description": "Verification failed. Workflow terminates.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Identity verification successful. Workflow hands off to onboarding.profile-creation.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_DOCUMENT_CHECK": {
+      "from": "START",
+      "to": "DOCUMENT_CHECK",
+      "conditions": []
+    },
+
+    "DOCUMENT_CHECK_TO_BIOMETRIC_CHECK": {
+      "from": "DOCUMENT_CHECK",
+      "to": "BIOMETRIC_CHECK",
+      "conditions": ["documents.valid"]
+    },
+
+    "DOCUMENT_CHECK_TO_REJECT": {
+      "from": "DOCUMENT_CHECK",
+      "to": "REJECT",
+      "conditions": ["documents.invalid"]
+    },
+
+    "BIOMETRIC_CHECK_TO_RESIDENCY_CHECK": {
+      "from": "BIOMETRIC_CHECK",
+      "to": "RESIDENCY_CHECK",
+      "conditions": ["biometric.valid"]
+    },
+
+    "BIOMETRIC_CHECK_TO_REJECT": {
+      "from": "BIOMETRIC_CHECK",
+      "to": "REJECT",
+      "conditions": ["biometric.invalid"]
+    },
+
+    "RESIDENCY_CHECK_TO_TRUST_SCORE_INIT": {
+      "from": "RESIDENCY_CHECK",
+      "to": "TRUST_SCORE_INIT",
+      "conditions": ["residency.valid"]
+    },
+
+    "RESIDENCY_CHECK_TO_REJECT": {
+      "from": "RESIDENCY_CHECK",
+      "to": "REJECT",
+      "conditions": ["residency.invalid"]
+    },
+
+    "TRUST_SCORE_INIT_TO_COMPLETE": {
+      "from": "TRUST_SCORE_INIT",
+      "to": "COMPLETE",
+      "conditions": ["score.initialized"]
+    },
+
+    "TRUST_SCORE_INIT_TO_REJECT": {
+      "from": "TRUST_SCORE_INIT",
+      "to": "REJECT",
+      "conditions": ["score.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "verification.document-check",
+        "verification.biometric-check",
+        "verification.residency-check",
+        "verification.trust-score-init",
+        "verification.complete"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "verification",
+    "nextWorkflow": "onboarding.profile-creation",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
