@@ -1,0 +1,172 @@
+{
+  "id": "wellbeing.support-plan",
+  "version": "1.0.0",
+  "description": "Creates and manages a structured wellbeing support plan based on assessment results, signals, and recommended pathways. Ensures stabilization, follow-up, and resolution.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered by wellbeing.assessment, wellbeing.signal, or support-pathways.",
+      "transitions": ["REVIEW_RECOMMENDATIONS"]
+    },
+
+    "REVIEW_RECOMMENDATIONS": {
+      "description": "Reviews recommended support pathways and identifies required interventions.",
+      "validators": ["validator.workflow"],
+      "transitions": ["BUILD_PLAN", "REJECT"]
+    },
+
+    "BUILD_PLAN": {
+      "description": "Constructs a structured support plan with goals, actions, timelines, and responsible parties.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CONFIRM_WITH_USER", "REJECT"]
+    },
+
+    "CONFIRM_WITH_USER": {
+      "description": "Confirms the support plan with the user, ensuring clarity, consent, and dignity-preserving alignment.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ACTIVATE_PLAN", "REJECT"]
+    },
+
+    "ACTIVATE_PLAN": {
+      "description": "Activates the support plan and initiates stabilization actions.",
+      "validators": ["validator.workflow"],
+      "transitions": ["MONITOR_PROGRESS", "REJECT"]
+    },
+
+    "MONITOR_PROGRESS": {
+      "description": "Monitors progress, evaluates adherence, and adjusts the plan as needed.",
+      "validators": ["validator.workflow"],
+      "transitions": ["RESOLVE", "ADJUST_PLAN", "REJECT"]
+    },
+
+    "ADJUST_PLAN": {
+      "description": "Adjusts the support plan based on updated needs, signals, or user feedback.",
+      "validators": ["validator.workflow"],
+      "transitions": ["MONITOR_PROGRESS", "REJECT"]
+    },
+
+    "RESOLVE": {
+      "description": "Support plan successfully completed. Stability restored and case closed.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Support plan cannot proceed due to missing data or unresolved conflicts. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_REVIEW_RECOMMENDATIONS": {
+      "from": "START",
+      "to": "REVIEW_RECOMMENDATIONS",
+      "conditions": []
+    },
+
+    "REVIEW_RECOMMENDATIONS_TO_BUILD_PLAN": {
+      "from": "REVIEW_RECOMMENDATIONS",
+      "to": "BUILD_PLAN",
+      "conditions": ["recommendations.valid"]
+    },
+
+    "REVIEW_RECOMMENDATIONS_TO_REJECT": {
+      "from": "REVIEW_RECOMMENDATIONS",
+      "to": "REJECT",
+      "conditions": ["recommendations.invalid"]
+    },
+
+    "BUILD_PLAN_TO_CONFIRM_WITH_USER": {
+      "from": "BUILD_PLAN",
+      "to": "CONFIRM_WITH_USER",
+      "conditions": ["plan.built"]
+    },
+
+    "BUILD_PLAN_TO_REJECT": {
+      "from": "BUILD_PLAN",
+      "to": "REJECT",
+      "conditions": ["plan.build_failed"]
+    },
+
+    "CONFIRM_WITH_USER_TO_ACTIVATE_PLAN": {
+      "from": "CONFIRM_WITH_USER",
+      "to": "ACTIVATE_PLAN",
+      "conditions": ["user.confirmed"]
+    },
+
+    "CONFIRM_WITH_USER_TO_REJECT": {
+      "from": "CONFIRM_WITH_USER",
+      "to": "REJECT",
+      "conditions": ["user.declined"]
+    },
+
+    "ACTIVATE_PLAN_TO_MONITOR_PROGRESS": {
+      "from": "ACTIVATE_PLAN",
+      "to": "MONITOR_PROGRESS",
+      "conditions": ["plan.active"]
+    },
+
+    "ACTIVATE_PLAN_TO_REJECT": {
+      "from": "ACTIVATE_PLAN",
+      "to": "REJECT",
+      "conditions": ["plan.activation_failed"]
+    },
+
+    "MONITOR_PROGRESS_TO_RESOLVE": {
+      "from": "MONITOR_PROGRESS",
+      "to": "RESOLVE",
+      "conditions": ["stability.restored"]
+    },
+
+    "MONITOR_PROGRESS_TO_ADJUST_PLAN": {
+      "from": "MONITOR_PROGRESS",
+      "to": "ADJUST_PLAN",
+      "conditions": ["needs.change_detected"]
+    },
+
+    "MONITOR_PROGRESS_TO_REJECT": {
+      "from": "MONITOR_PROGRESS",
+      "to": "REJECT",
+      "conditions": ["monitoring.failed"]
+    },
+
+    "ADJUST_PLAN_TO_MONITOR_PROGRESS": {
+      "from": "ADJUST_PLAN",
+      "to": "MONITOR_PROGRESS",
+      "conditions": ["plan.adjusted"]
+    },
+
+    "ADJUST_PLAN_TO_REJECT": {
+      "from": "ADJUST_PLAN",
+      "to": "REJECT",
+      "conditions": ["plan.adjust_failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "wellbeing.support-plan.recommendations-reviewed",
+        "wellbeing.support-plan.plan-built",
+        "wellbeing.support-plan.user-confirmed",
+        "wellbeing.support-plan.activated",
+        "wellbeing.support-plan.monitoring",
+        "wellbeing.support-plan.adjusted",
+        "wellbeing.support-plan.resolved",
+        "wellbeing.support-plan.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "wellbeing",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Wellbeing Standard"
+  }
+}
