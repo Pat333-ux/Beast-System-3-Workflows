@@ -1,0 +1,166 @@
+{
+  "id": "wellbeing.assessment",
+  "version": "1.0.0",
+  "description": "Conducts a full structured wellbeing assessment across all core domains, generates domain scores, overall score, status classification, harm-prevention triggers, and recommended support pathways.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered by onboarding, check-in escalation, or scheduled assessment.",
+      "transitions": ["COLLECT_INPUTS"]
+    },
+
+    "COLLECT_INPUTS": {
+      "description": "Collects all required wellbeing inputs across core domains: housing, food, health, safety, dignity, economic stability, community, and spiritual support.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CALCULATE_DOMAIN_SCORES", "REJECT"]
+    },
+
+    "CALCULATE_DOMAIN_SCORES": {
+      "description": "Applies deterministic scoring rules to each wellbeing domain.",
+      "validators": ["validator.score"],
+      "transitions": ["CALCULATE_OVERALL_SCORE", "REJECT"]
+    },
+
+    "CALCULATE_OVERALL_SCORE": {
+      "description": "Aggregates domain scores into a single overall wellbeing score.",
+      "validators": ["validator.score"],
+      "transitions": ["CLASSIFY_STATUS", "REJECT"]
+    },
+
+    "CLASSIFY_STATUS": {
+      "description": "Classifies wellbeing status as stable, at_risk, or critical based on thresholds.",
+      "validators": ["validator.score"],
+      "transitions": ["GENERATE_HARM_PREVENTION", "REJECT"]
+    },
+
+    "GENERATE_HARM_PREVENTION": {
+      "description": "Generates harm-prevention triggers if any domain meets risk criteria.",
+      "validators": ["validator.workflow"],
+      "transitions": ["GENERATE_SUPPORT_PATHWAYS", "REJECT"]
+    },
+
+    "GENERATE_SUPPORT_PATHWAYS": {
+      "description": "Determines recommended support pathways based on domain scores and status.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Assessment complete. Outputs full WellbeingAssessment object.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Assessment failed due to missing or invalid data. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_COLLECT_INPUTS": {
+      "from": "START",
+      "to": "COLLECT_INPUTS",
+      "conditions": []
+    },
+
+    "COLLECT_INPUTS_TO_CALCULATE_DOMAIN_SCORES": {
+      "from": "COLLECT_INPUTS",
+      "to": "CALCULATE_DOMAIN_SCORES",
+      "conditions": ["inputs.collected"]
+    },
+
+    "COLLECT_INPUTS_TO_REJECT": {
+      "from": "COLLECT_INPUTS",
+      "to": "REJECT",
+      "conditions": ["inputs.missing"]
+    },
+
+    "CALCULATE_DOMAIN_SCORES_TO_CALCULATE_OVERALL_SCORE": {
+      "from": "CALCULATE_DOMAIN_SCORES",
+      "to": "CALCULATE_OVERALL_SCORE",
+      "conditions": ["domains.scored"]
+    },
+
+    "CALCULATE_DOMAIN_SCORES_TO_REJECT": {
+      "from": "CALCULATE_DOMAIN_SCORES",
+      "to": "REJECT",
+      "conditions": ["domains.invalid"]
+    },
+
+    "CALCULATE_OVERALL_SCORE_TO_CLASSIFY_STATUS": {
+      "from": "CALCULATE_OVERALL_SCORE",
+      "to": "CLASSIFY_STATUS",
+      "conditions": ["overall.scored"]
+    },
+
+    "CALCULATE_OVERALL_SCORE_TO_REJECT": {
+      "from": "CALCULATE_OVERALL_SCORE",
+      "to": "REJECT",
+      "conditions": ["overall.invalid"]
+    },
+
+    "CLASSIFY_STATUS_TO_GENERATE_HARM_PREVENTION": {
+      "from": "CLASSIFY_STATUS",
+      "to": "GENERATE_HARM_PREVENTION",
+      "conditions": ["status.classified"]
+    },
+
+    "CLASSIFY_STATUS_TO_REJECT": {
+      "from": "CLASSIFY_STATUS",
+      "to": "REJECT",
+      "conditions": ["status.invalid"]
+    },
+
+    "GENERATE_HARM_PREVENTION_TO_GENERATE_SUPPORT_PATHWAYS": {
+      "from": "GENERATE_HARM_PREVENTION",
+      "to": "GENERATE_SUPPORT_PATHWAYS",
+      "conditions": ["harm_prevention.generated"]
+    },
+
+    "GENERATE_HARM_PREVENTION_TO_REJECT": {
+      "from": "GENERATE_HARM_PREVENTION",
+      "to": "REJECT",
+      "conditions": ["harm_prevention.failed"]
+    },
+
+    "GENERATE_SUPPORT_PATHWAYS_TO_COMPLETE": {
+      "from": "GENERATE_SUPPORT_PATHWAYS",
+      "to": "COMPLETE",
+      "conditions": ["support_pathways.generated"]
+    },
+
+    "GENERATE_SUPPORT_PATHWAYS_TO_REJECT": {
+      "from": "GENERATE_SUPPORT_PATHWAYS",
+      "to": "REJECT",
+      "conditions": ["support_pathways.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "wellbeing.assessment.inputs-collected",
+        "wellbeing.assessment.domain-scores",
+        "wellbeing.assessment.overall-score",
+        "wellbeing.assessment.status-classified",
+        "wellbeing.assessment.harm-prevention",
+        "wellbeing.assessment.support-pathways",
+        "wellbeing.assessment.complete",
+        "wellbeing.assessment.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "wellbeing",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Wellbeing Standard"
+  }
+}
