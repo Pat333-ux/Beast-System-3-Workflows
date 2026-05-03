@@ -1,0 +1,147 @@
+{
+  "id": "event.lifecycle",
+  "version": "1.0.0",
+  "description": "Defines the full lifecycle of system events within Beast System 3.0, from creation to archival. Ensures deterministic validation, metadata enrichment, audit logging, and chain integration.",
+  "domain": "audit",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "CREATED": {
+      "description": "Event object created by a workflow, engine, or subsystem. Raw and unvalidated.",
+      "transitions": ["VALIDATION", "REJECTED"]
+    },
+
+    "VALIDATION": {
+      "description": "Event is validated for structure, required fields, domain compliance, and schema correctness.",
+      "validators": ["validator.audit"],
+      "transitions": ["ENRICHED", "REJECTED"]
+    },
+
+    "ENRICHED": {
+      "description": "Event metadata is enriched with timestamps, actor identity, workflow context, environment, and hash preimage.",
+      "validators": ["validator.audit"],
+      "transitions": ["LOGGED", "REJECTED"]
+    },
+
+    "LOGGED": {
+      "description": "Event is transformed into a canonical audit-log-entry and stored in the audit log.",
+      "validators": ["validator.audit"],
+      "transitions": ["CHAINED", "REJECTED"]
+    },
+
+    "CHAINED": {
+      "description": "Event is added to the audit chain with hash linkage and signature application.",
+      "validators": ["validator.crypto"],
+      "transitions": ["FINALIZED", "REJECTED"]
+    },
+
+    "FINALIZED": {
+      "description": "Event is sealed, anchored, and marked immutable. Ready for archival.",
+      "validators": ["validator.audit"],
+      "transitions": ["ARCHIVED"]
+    },
+
+    "ARCHIVED": {
+      "description": "Event is archived for long-term retention and audit continuity. Terminal state.",
+      "terminal": true
+    },
+
+    "REJECTED": {
+      "description": "Event failed validation or processing. Logged for administrative review. Terminal state.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "CREATED_TO_VALIDATION": {
+      "from": "CREATED",
+      "to": "VALIDATION",
+      "conditions": ["event.created"]
+    },
+
+    "CREATED_TO_REJECTED": {
+      "from": "CREATED",
+      "to": "REJECTED",
+      "conditions": ["event.malformed"]
+    },
+
+    "VALIDATION_TO_ENRICHED": {
+      "from": "VALIDATION",
+      "to": "ENRICHED",
+      "conditions": ["event.valid"]
+    },
+
+    "VALIDATION_TO_REJECTED": {
+      "from": "VALIDATION",
+      "to": "REJECTED",
+      "conditions": ["event.invalid"]
+    },
+
+    "ENRICHED_TO_LOGGED": {
+      "from": "ENRICHED",
+      "to": "LOGGED",
+      "conditions": ["metadata.enriched"]
+    },
+
+    "ENRICHED_TO_REJECTED": {
+      "from": "ENRICHED",
+      "to": "REJECTED",
+      "conditions": ["metadata.failed"]
+    },
+
+    "LOGGED_TO_CHAINED": {
+      "from": "LOGGED",
+      "to": "CHAINED",
+      "conditions": ["log.entry_created"]
+    },
+
+    "LOGGED_TO_REJECTED": {
+      "from": "LOGGED",
+      "to": "REJECTED",
+      "conditions": ["log.failed"]
+    },
+
+    "CHAINED_TO_FINALIZED": {
+      "from": "CHAINED",
+      "to": "FINALIZED",
+      "conditions": ["chain.linked", "signature.applied"]
+    },
+
+    "CHAINED_TO_REJECTED": {
+      "from": "CHAINED",
+      "to": "REJECTED",
+      "conditions": ["chain.invalid"]
+    },
+
+    "FINALIZED_TO_ARCHIVED": {
+      "from": "FINALIZED",
+      "to": "ARCHIVED",
+      "conditions": ["event.sealed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "event.lifecycle.created",
+        "event.lifecycle.validated",
+        "event.lifecycle.enriched",
+        "event.lifecycle.logged",
+        "event.lifecycle.chained",
+        "event.lifecycle.finalized",
+        "event.lifecycle.archived",
+        "event.lifecycle.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "lifecycleType": "event",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Audit Standard"
+  }
+}
