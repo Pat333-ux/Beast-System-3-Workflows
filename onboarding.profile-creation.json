@@ -1,0 +1,110 @@
+{
+  "id": "onboarding.profile-creation",
+  "version": "1.0.0",
+  "description": "Creates the user's system profile after identity verification. Establishes core attributes, initializes user lifecycle, and prepares the user for initial assessment.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User arrives from onboarding.identity-verification.",
+      "transitions": ["CREATE_PROFILE"]
+    },
+
+    "CREATE_PROFILE": {
+      "description": "Generates a new user profile with verified identity attributes.",
+      "validators": ["validator.identity", "validator.workflow"],
+      "transitions": ["SET_DEFAULT_ATTRIBUTES", "REJECT"]
+    },
+
+    "SET_DEFAULT_ATTRIBUTES": {
+      "description": "Applies baseline attributes such as status, role, and lifecycle initialization.",
+      "validators": ["validator.workflow"],
+      "transitions": ["INITIALIZE_LIFECYCLE", "REJECT"]
+    },
+
+    "INITIALIZE_LIFECYCLE": {
+      "description": "Creates the initial user lifecycle record and assigns the starting state.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "REJECT": {
+      "description": "Profile creation failed. Workflow terminates.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Profile successfully created. Workflow hands off to onboarding.initial-assessment.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_CREATE_PROFILE": {
+      "from": "START",
+      "to": "CREATE_PROFILE",
+      "conditions": []
+    },
+
+    "CREATE_PROFILE_TO_SET_DEFAULT_ATTRIBUTES": {
+      "from": "CREATE_PROFILE",
+      "to": "SET_DEFAULT_ATTRIBUTES",
+      "conditions": ["identity.verified", "profile.created"]
+    },
+
+    "CREATE_PROFILE_TO_REJECT": {
+      "from": "CREATE_PROFILE",
+      "to": "REJECT",
+      "conditions": ["profile.creation_failed"]
+    },
+
+    "SET_DEFAULT_ATTRIBUTES_TO_INITIALIZE_LIFECYCLE": {
+      "from": "SET_DEFAULT_ATTRIBUTES",
+      "to": "INITIALIZE_LIFECYCLE",
+      "conditions": ["attributes.applied"]
+    },
+
+    "SET_DEFAULT_ATTRIBUTES_TO_REJECT": {
+      "from": "SET_DEFAULT_ATTRIBUTES",
+      "to": "REJECT",
+      "conditions": ["attributes.failed"]
+    },
+
+    "INITIALIZE_LIFECYCLE_TO_COMPLETE": {
+      "from": "INITIALIZE_LIFECYCLE",
+      "to": "COMPLETE",
+      "conditions": ["lifecycle.initialized"]
+    },
+
+    "INITIALIZE_LIFECYCLE_TO_REJECT": {
+      "from": "INITIALIZE_LIFECYCLE",
+      "to": "REJECT",
+      "conditions": ["lifecycle.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "profile.creation-start",
+        "profile.created",
+        "profile.attributes-applied",
+        "profile.lifecycle-initialized",
+        "profile.creation-complete"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "profile",
+    "nextWorkflow": "onboarding.initial-assessment",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
