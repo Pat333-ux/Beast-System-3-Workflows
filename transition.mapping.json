@@ -1,0 +1,221 @@
+{
+  "id": "transition.mapping",
+  "version": "1.0.0",
+  "description": "Maps lifecycle and state-machine transitions to global transition rules and conditions. Ensures deterministic, cross-domain enforcement of Beast System 3.0 logic.",
+  "domain": "core",
+  "lastUpdated": "2026-05-03",
+
+  "mappings": {
+    "user": {
+      "lifecycle": {
+        "CREATED_TO_PENDING_VERIFICATION": [
+          "identity.initialized"
+        ],
+        "CREATED_TO_ARCHIVED": [
+          "identity.abandoned"
+        ],
+        "PENDING_VERIFICATION_TO_ACTIVE": [
+          "identity.verified",
+          "consent.confirmed"
+        ],
+        "PENDING_VERIFICATION_TO_REJECTED": [
+          "identity.invalid",
+          "consent.denied"
+        ],
+        "PENDING_VERIFICATION_TO_ARCHIVED": [
+          "identity.expired"
+        ],
+        "ACTIVE_TO_SUSPENDED": [
+          "safety.concern",
+          "wellbeing.risk_detected"
+        ],
+        "ACTIVE_TO_EXITED": [
+          "user.request_exit"
+        ],
+        "ACTIVE_TO_ARCHIVED": [
+          "identity.retired"
+        ],
+        "SUSPENDED_TO_ACTIVE": [
+          "safety.resolved",
+          "wellbeing.stable"
+        ],
+        "SUSPENDED_TO_EXITED": [
+          "user.request_exit"
+        ],
+        "SUSPENDED_TO_ARCHIVED": [
+          "identity.retired"
+        ],
+        "EXITED_TO_REACTIVATED": [
+          "user.request_reactivation"
+        ],
+        "EXITED_TO_ARCHIVED": [
+          "identity.retired"
+        ],
+        "REACTIVATED_TO_ACTIVE": [
+          "consent.updated",
+          "wellbeing.baseline_completed"
+        ],
+        "REACTIVATED_TO_ARCHIVED": [
+          "identity.retired"
+        ]
+      },
+
+      "stateMachine": {
+        "CREATED": {
+          "PENDING_VERIFICATION": ["identity.initialized"],
+          "ARCHIVED": ["identity.abandoned"]
+        },
+        "PENDING_VERIFICATION": {
+          "ACTIVE": ["identity.verified", "consent.confirmed"],
+          "REJECTED": ["identity.invalid", "consent.denied"],
+          "ARCHIVED": ["identity.expired"]
+        },
+        "ACTIVE": {
+          "SUSPENDED": ["safety.concern", "wellbeing.risk_detected"],
+          "EXITED": ["user.request_exit"],
+          "ARCHIVED": ["identity.retired"]
+        },
+        "SUSPENDED": {
+          "ACTIVE": ["safety.resolved", "wellbeing.stable"],
+          "EXITED": ["user.request_exit"],
+          "ARCHIVED": ["identity.retired"]
+        },
+        "EXITED": {
+          "REACTIVATED": ["user.request_reactivation"],
+          "ARCHIVED": ["identity.retired"]
+        },
+        "REACTIVATED": {
+          "ACTIVE": ["consent.updated", "wellbeing.baseline_completed"],
+          "ARCHIVED": ["identity.retired"]
+        }
+      }
+    },
+
+    "case": {
+      "lifecycle": {
+        "INTAKE_TO_CLASSIFICATION": ["case.initialized"],
+        "INTAKE_TO_ARCHIVED": ["case.abandoned"],
+
+        "CLASSIFICATION_TO_ASSESSMENT": ["case.classified"],
+        "CLASSIFICATION_TO_REJECTED": ["case.invalid"],
+        "CLASSIFICATION_TO_ARCHIVED": ["case.expired"],
+
+        "ASSESSMENT_TO_STEWARDSHIP_ACTION": ["assessment.completed"],
+        "ASSESSMENT_TO_ESCALATED": ["assessment.risk_detected"],
+        "ASSESSMENT_TO_REJECTED": ["assessment.invalid"],
+
+        "STEWARDSHIP_ACTION_TO_REVIEW": ["action.completed"],
+        "STEWARDSHIP_ACTION_TO_ESCALATED": ["action.escalation_required"],
+        "STEWARDSHIP_ACTION_TO_REJECTED": ["action.invalid"],
+
+        "REVIEW_TO_CLOSURE": ["review.resolved"],
+        "REVIEW_TO_STEWARDSHIP_ACTION": ["review.needs_more_action"],
+        "REVIEW_TO_ESCALATED": ["review.escalation_required"],
+        "REVIEW_TO_REJECTED": ["review.invalid"],
+
+        "ESCALATED_TO_REVIEW": ["escalation.resolved"],
+        "ESCALATED_TO_CLOSURE": ["escalation.completed"],
+        "ESCALATED_TO_ARCHIVED": ["escalation.terminal"],
+
+        "CLOSURE_TO_ARCHIVED": ["closure.finalized"]
+      },
+
+      "stateMachine": {
+        "INTAKE": {
+          "CLASSIFICATION": ["case.initialized"],
+          "ARCHIVED": ["case.abandoned"]
+        },
+        "CLASSIFICATION": {
+          "ASSESSMENT": ["case.classified"],
+          "REJECTED": ["case.invalid"],
+          "ARCHIVED": ["case.expired"]
+        },
+        "ASSESSMENT": {
+          "STEWARDSHIP_ACTION": ["assessment.completed"],
+          "ESCALATED": ["assessment.risk_detected"],
+          "REJECTED": ["assessment.invalid"]
+        },
+        "STEWARDSHIP_ACTION": {
+          "REVIEW": ["action.completed"],
+          "ESCALATED": ["action.escalation_required"],
+          "REJECTED": ["action.invalid"]
+        },
+        "REVIEW": {
+          "CLOSURE": ["review.resolved"],
+          "STEWARDSHIP_ACTION": ["review.needs_more_action"],
+          "ESCALATED": ["review.escalation_required"],
+          "REJECTED": ["review.invalid"]
+        },
+        "ESCALATED": {
+          "REVIEW": ["escalation.resolved"],
+          "CLOSURE": ["escalation.completed"],
+          "ARCHIVED": ["escalation.terminal"]
+        },
+        "CLOSURE": {
+          "ARCHIVED": ["closure.finalized"]
+        }
+      }
+    },
+
+    "event": {
+      "lifecycle": {
+        "CREATED_TO_VALIDATION": ["event.created"],
+        "CREATED_TO_REJECTED": ["event.malformed"],
+
+        "VALIDATION_TO_ENRICHED": ["event.valid"],
+        "VALIDATION_TO_REJECTED": ["event.invalid"],
+
+        "ENRICHED_TO_LOGGED": ["metadata.enriched"],
+        "ENRICHED_TO_REJECTED": ["metadata.failed"],
+
+        "LOGGED_TO_CHAINED": ["log.entry_created"],
+        "LOGGED_TO_REJECTED": ["log.failed"],
+
+        "CHAINED_TO_FINALIZED": ["chain.linked", "signature.applied"],
+        "CHAINED_TO_REJECTED": ["chain.invalid"],
+
+        "FINALIZED_TO_ARCHIVED": ["event.sealed"]
+      },
+
+      "stateMachine": {
+        "CREATED": {
+          "VALIDATION": ["event.created"],
+          "REJECTED": ["event.malformed"]
+        },
+        "VALIDATION": {
+          "ENRICHED": ["event.valid"],
+          "REJECTED": ["event.invalid"]
+        },
+        "ENRICHED": {
+          "LOGGED": ["metadata.enriched"],
+          "REJECTED": ["metadata.failed"]
+        },
+        "LOGGED": {
+          "CHAINED": ["log.entry_created"],
+          "REJECTED": ["log.failed"]
+        },
+        "CHAINED": {
+          "FINALIZED": ["chain.linked", "signature.applied"],
+          "REJECTED": ["chain.invalid"]
+        },
+        "FINALIZED": {
+          "ARCHIVED": ["event.sealed"]
+        }
+      }
+    }
+  },
+
+  "invariants": {
+    "deterministic": true,
+    "nonPunitive": true,
+    "dignityPreserving": true,
+    "crossDomainConsistent": true,
+    "auditRequired": true
+  },
+
+  "metadata": {
+    "mappingType": "transition-mapping",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Logic Standard"
+  }
+}
