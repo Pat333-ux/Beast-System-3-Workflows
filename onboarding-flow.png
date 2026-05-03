@@ -1,0 +1,104 @@
+{
+  "id": "onboarding.flow",
+  "version": "1.0.0",
+  "description": "Unified onboarding flow for Beast System 3.0. Deterministic, audit-ready, and fully interoperable with identity, verification, profile, and wellbeing engines.",
+  "domain": "onboarding",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Entry point for all onboarding sessions.",
+      "transitions": ["CHECK_ELIGIBILITY"]
+    },
+
+    "CHECK_ELIGIBILITY": {
+      "description": "Ensures user meets minimum requirements to begin onboarding.",
+      "validators": ["validator.identity"],
+      "transitions": ["CREATE_SESSION", "REJECT"]
+    },
+
+    "CREATE_SESSION": {
+      "description": "Creates onboarding session, initializes logging and identity anchor.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ROUTE_TO_VERIFICATION"]
+    },
+
+    "ROUTE_TO_VERIFICATION": {
+      "description": "Routes user to the appropriate verification workflow based on identity state.",
+      "transitions": ["IDENTITY_VERIFICATION"]
+    },
+
+    "IDENTITY_VERIFICATION": {
+      "description": "Performs document, biometric, and residency verification.",
+      "workflow": "onboarding.identity-verification",
+      "validators": ["validator.identity", "validator.document"],
+      "transitions": ["PROFILE_CREATION", "REJECT"]
+    },
+
+    "PROFILE_CREATION": {
+      "description": "Collects and initializes user profile attributes.",
+      "workflow": "onboarding.profile-creation",
+      "validators": ["validator.workflow"],
+      "transitions": ["INITIAL_ASSESSMENT"]
+    },
+
+    "INITIAL_ASSESSMENT": {
+      "description": "Performs baseline wellbeing and risk assessment.",
+      "workflow": "onboarding.initial-assessment",
+      "validators": ["validator.score", "validator.workflow"],
+      "transitions": ["WELCOME_SEQUENCE"]
+    },
+
+    "WELCOME_SEQUENCE": {
+      "description": "Introduces user to rights, responsibilities, system expectations, and support resources.",
+      "workflow": "onboarding.welcome-sequence",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE"]
+    },
+
+    "COMPLETE": {
+      "description": "Final onboarding state. User is fully initialized and ready for system participation.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Onboarding terminated due to invalid identity, failed verification, or unmet requirements.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_CHECK_ELIGIBILITY": ["identity.initialized"],
+    "CHECK_ELIGIBILITY_TO_CREATE_SESSION": ["identity.verified"],
+    "CHECK_ELIGIBILITY_TO_REJECT": ["identity.invalid"],
+    "CREATE_SESSION_TO_ROUTE_TO_VERIFICATION": ["session.created"],
+    "ROUTE_TO_VERIFICATION_TO_IDENTITY_VERIFICATION": ["identity.verification_required"],
+    "IDENTITY_VERIFICATION_TO_PROFILE_CREATION": ["identity.verified"],
+    "IDENTITY_VERIFICATION_TO_REJECT": ["identity.invalid"],
+    "PROFILE_CREATION_TO_INITIAL_ASSESSMENT": ["profile.initialized"],
+    "INITIAL_ASSESSMENT_TO_WELCOME_SEQUENCE": ["assessment.completed"],
+    "WELCOME_SEQUENCE_TO_COMPLETE": ["welcome.completed"]
+  },
+
+  "policies": {
+    "security": {
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "onboarding.started",
+        "onboarding.state.transition",
+        "onboarding.validation",
+        "onboarding.completed",
+        "onboarding.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "deterministic",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Onboarding Standard"
+  }
+}
