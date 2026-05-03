@@ -1,0 +1,147 @@
+{
+  "id": "community.exit",
+  "version": "1.0.0",
+  "description": "Defines the structured, dignity-preserving exit workflow for individuals leaving the community system. Ensures clarity, consent, record closure, and optional transition support.",
+  "domain": "community",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when a member requests exit, completes lifecycle, or is transitioned administratively.",
+      "transitions": ["CAPTURE_EXIT_REASON"]
+    },
+
+    "CAPTURE_EXIT_REASON": {
+      "description": "Captures the reason for exit: voluntary, lifecycle-complete, transition, or administrative. Ensures clarity and consent.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CHECK_WELLBEING_STATUS", "REJECT"]
+    },
+
+    "CHECK_WELLBEING_STATUS": {
+      "description": "Performs a light wellbeing check to ensure the exit does not leave the individual in an unsafe or unsupported state.",
+      "validators": ["validator.score"],
+      "transitions": ["OFFER_TRANSITION_SUPPORT", "REJECT"]
+    },
+
+    "OFFER_TRANSITION_SUPPORT": {
+      "description": "Offers optional transition support: referrals, resources, follow-up scheduling, or stabilization pathways.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ARCHIVE_COMMUNITY_RECORD", "REJECT"]
+    },
+
+    "ARCHIVE_COMMUNITY_RECORD": {
+      "description": "Archives the individual's community record, seals interaction history, and prepares final audit snapshot.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ISSUE_EXIT_CONFIRMATION", "REJECT"]
+    },
+
+    "ISSUE_EXIT_CONFIRMATION": {
+      "description": "Issues exit confirmation to the individual and system components. Updates lifecycle status to 'exited'.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Community exit complete. Individual is formally released from community lifecycle.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Exit cannot proceed due to missing data, invalid state, or unresolved safety concerns. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_CAPTURE_EXIT_REASON": {
+      "from": "START",
+      "to": "CAPTURE_EXIT_REASON",
+      "conditions": []
+    },
+
+    "CAPTURE_EXIT_REASON_TO_CHECK_WELLBEING_STATUS": {
+      "from": "CAPTURE_EXIT_REASON",
+      "to": "CHECK_WELLBEING_STATUS",
+      "conditions": ["exit.reason_captured"]
+    },
+
+    "CAPTURE_EXIT_REASON_TO_REJECT": {
+      "from": "CAPTURE_EXIT_REASON",
+      "to": "REJECT",
+      "conditions": ["exit.reason_missing"]
+    },
+
+    "CHECK_WELLBEING_STATUS_TO_OFFER_TRANSITION_SUPPORT": {
+      "from": "CHECK_WELLBEING_STATUS",
+      "to": "OFFER_TRANSITION_SUPPORT",
+      "conditions": ["wellbeing.checked"]
+    },
+
+    "CHECK_WELLBEING_STATUS_TO_REJECT": {
+      "from": "CHECK_WELLBEING_STATUS",
+      "to": "REJECT",
+      "conditions": ["wellbeing.invalid"]
+    },
+
+    "OFFER_TRANSITION_SUPPORT_TO_ARCHIVE_COMMUNITY_RECORD": {
+      "from": "OFFER_TRANSITION_SUPPORT",
+      "to": "ARCHIVE_COMMUNITY_RECORD",
+      "conditions": ["support.offered"]
+    },
+
+    "OFFER_TRANSITION_SUPPORT_TO_REJECT": {
+      "from": "OFFER_TRANSITION_SUPPORT",
+      "to": "REJECT",
+      "conditions": ["support.failed"]
+    },
+
+    "ARCHIVE_COMMUNITY_RECORD_TO_ISSUE_EXIT_CONFIRMATION": {
+      "from": "ARCHIVE_COMMUNITY_RECORD",
+      "to": "ISSUE_EXIT_CONFIRMATION",
+      "conditions": ["archive.success"]
+    },
+
+    "ARCHIVE_COMMUNITY_RECORD_TO_REJECT": {
+      "from": "ARCHIVE_COMMUNITY_RECORD",
+      "to": "REJECT",
+      "conditions": ["archive.failed"]
+    },
+
+    "ISSUE_EXIT_CONFIRMATION_TO_COMPLETE": {
+      "from": "ISSUE_EXIT_CONFIRMATION",
+      "to": "COMPLETE",
+      "conditions": ["exit.confirmed"]
+    },
+
+    "ISSUE_EXIT_CONFIRMATION_TO_REJECT": {
+      "from": "ISSUE_EXIT_CONFIRMATION",
+      "to": "REJECT",
+      "conditions": ["exit.confirmation_failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "standard"
+    },
+    "audit": {
+      "captureEvents": [
+        "community.exit.reason-captured",
+        "community.exit.wellbeing-checked",
+        "community.exit.support-offered",
+        "community.exit.archived",
+        "community.exit.confirmed",
+        "community.exit.complete",
+        "community.exit.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "community",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Community Standard"
+  }
+}
