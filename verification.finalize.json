@@ -1,0 +1,90 @@
+{
+  "id": "verification.finalize",
+  "version": "1.0.0",
+  "description": "Finalizes the verification process by confirming all verification stages are complete and updating the user's verification status.",
+  "domain": "identity",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. User arrives from verification.trust-score-init.",
+      "transitions": ["FINAL_VERIFICATION_CHECK"]
+    },
+
+    "FINAL_VERIFICATION_CHECK": {
+      "description": "Performs a final consistency and completeness check across all verification stages.",
+      "validators": ["validator.workflow"],
+      "transitions": ["UPDATE_VERIFICATION_STATUS", "REJECT"]
+    },
+
+    "UPDATE_VERIFICATION_STATUS": {
+      "description": "Updates the user's verification status and records the final verification outcome.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "REJECT": {
+      "description": "Final verification failed. Workflow terminates.",
+      "terminal": true
+    },
+
+    "COMPLETE": {
+      "description": "Verification fully complete. User is now marked as verified in the system.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_FINAL_VERIFICATION_CHECK": {
+      "from": "START",
+      "to": "FINAL_VERIFICATION_CHECK",
+      "conditions": []
+    },
+
+    "FINAL_VERIFICATION_CHECK_TO_UPDATE_VERIFICATION_STATUS": {
+      "from": "FINAL_VERIFICATION_CHECK",
+      "to": "UPDATE_VERIFICATION_STATUS",
+      "conditions": ["verification.all_stages_complete", "verification.consistent"]
+    },
+
+    "FINAL_VERIFICATION_CHECK_TO_REJECT": {
+      "from": "FINAL_VERIFICATION_CHECK",
+      "to": "REJECT",
+      "conditions": ["verification.incomplete", "verification.inconsistent"]
+    },
+
+    "UPDATE_VERIFICATION_STATUS_TO_COMPLETE": {
+      "from": "UPDATE_VERIFICATION_STATUS",
+      "to": "COMPLETE",
+      "conditions": ["verification.status_updated"]
+    },
+
+    "UPDATE_VERIFICATION_STATUS_TO_REJECT": {
+      "from": "UPDATE_VERIFICATION_STATUS",
+      "to": "REJECT",
+      "conditions": ["verification.status_update_failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "standard"
+    },
+    "audit": {
+      "captureEvents": [
+        "verification.final-check",
+        "verification.status-updated",
+        "verification.complete"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "verification",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
