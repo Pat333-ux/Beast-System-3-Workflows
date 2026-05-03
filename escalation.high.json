@@ -1,0 +1,135 @@
+{
+  "id": "escalation.elevated",
+  "version": "1.0.0",
+  "description": "Elevated-tier escalation workflow for significant issues requiring structured intervention, accountability measures, and monitored corrective action.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when an issue exceeds moderate-tier capacity.",
+      "transitions": ["EVALUATE_SEVERITY"]
+    },
+
+    "EVALUATE_SEVERITY": {
+      "description": "Performs a detailed severity evaluation, including impact, recurrence, and risk factors.",
+      "validators": ["validator.workflow"],
+      "transitions": ["FORMAL_NOTICE", "STRUCTURED_INTERVENTION", "REJECT"]
+    },
+
+    "FORMAL_NOTICE": {
+      "description": "Issues a formal notice outlining the concern, expectations, and required corrective actions.",
+      "validators": ["validator.workflow"],
+      "transitions": ["STRUCTURED_INTERVENTION", "REJECT"]
+    },
+
+    "STRUCTURED_INTERVENTION": {
+      "description": "Implements a structured intervention plan with defined milestones, monitoring, and support.",
+      "validators": ["validator.workflow"],
+      "transitions": ["MONITOR_PROGRESS", "REJECT"]
+    },
+
+    "MONITOR_PROGRESS": {
+      "description": "Monitors adherence to the intervention plan and evaluates improvement over time.",
+      "validators": ["validator.workflow"],
+      "transitions": ["RESOLVE", "REJECT"]
+    },
+
+    "RESOLVE": {
+      "description": "Issue resolved at the elevated tier. No further escalation required.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Issue cannot be resolved at the elevated tier and must be escalated to the critical tier.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_EVALUATE_SEVERITY": {
+      "from": "START",
+      "to": "EVALUATE_SEVERITY",
+      "conditions": []
+    },
+
+    "EVALUATE_SEVERITY_TO_FORMAL_NOTICE": {
+      "from": "EVALUATE_SEVERITY",
+      "to": "FORMAL_NOTICE",
+      "conditions": ["severity.significant"]
+    },
+
+    "EVALUATE_SEVERITY_TO_STRUCTURED_INTERVENTION": {
+      "from": "EVALUATE_SEVERITY",
+      "to": "STRUCTURED_INTERVENTION",
+      "conditions": ["severity.high_impact"]
+    },
+
+    "EVALUATE_SEVERITY_TO_REJECT": {
+      "from": "EVALUATE_SEVERITY",
+      "to": "REJECT",
+      "conditions": ["severity.exceeds_elevated_tier"]
+    },
+
+    "FORMAL_NOTICE_TO_STRUCTURED_INTERVENTION": {
+      "from": "FORMAL_NOTICE",
+      "to": "STRUCTURED_INTERVENTION",
+      "conditions": ["notice.acknowledged"]
+    },
+
+    "FORMAL_NOTICE_TO_REJECT": {
+      "from": "FORMAL_NOTICE",
+      "to": "REJECT",
+      "conditions": ["notice.ignored"]
+    },
+
+    "STRUCTURED_INTERVENTION_TO_MONITOR_PROGRESS": {
+      "from": "STRUCTURED_INTERVENTION",
+      "to": "MONITOR_PROGRESS",
+      "conditions": ["intervention.plan_active"]
+    },
+
+    "STRUCTURED_INTERVENTION_TO_REJECT": {
+      "from": "STRUCTURED_INTERVENTION",
+      "to": "REJECT",
+      "conditions": ["intervention.failed"]
+    },
+
+    "MONITOR_PROGRESS_TO_RESOLVE": {
+      "from": "MONITOR_PROGRESS",
+      "to": "RESOLVE",
+      "conditions": ["progress.sufficient"]
+    },
+
+    "MONITOR_PROGRESS_TO_REJECT": {
+      "from": "MONITOR_PROGRESS",
+      "to": "REJECT",
+      "conditions": ["progress.insufficient"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "escalation.elevated.severity-evaluated",
+        "escalation.elevated.notice-issued",
+        "escalation.elevated.intervention-started",
+        "escalation.elevated.progress-monitored",
+        "escalation.elevated.resolved",
+        "escalation.elevated.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "tier": "elevated",
+    "workflowType": "escalation",
+    "nextWorkflow": "escalation.critical",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
