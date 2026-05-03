@@ -1,0 +1,147 @@
+{
+  "id": "community.feedback",
+  "version": "1.0.0",
+  "description": "Structured workflow for community feedback, including praise, concerns, suggestions, and systemic observations. Ensures safe capture, classification, routing, and response.",
+  "domain": "community",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when a member submits feedback through any channel.",
+      "transitions": ["CAPTURE_FEEDBACK"]
+    },
+
+    "CAPTURE_FEEDBACK": {
+      "description": "Captures feedback content, channel, optional identity (including anonymous), and context.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CLASSIFY_FEEDBACK", "REJECT"]
+    },
+
+    "CLASSIFY_FEEDBACK": {
+      "description": "Classifies feedback type: praise, suggestion, concern, incident, or systemic pattern.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ROUTE_FEEDBACK", "REJECT"]
+    },
+
+    "ROUTE_FEEDBACK": {
+      "description": "Routes feedback to the appropriate handling path: acknowledgement-only, improvement-review, incident-review, or governance-review.",
+      "validators": ["validator.workflow"],
+      "transitions": ["HANDLE_FEEDBACK", "REJECT"]
+    },
+
+    "HANDLE_FEEDBACK": {
+      "description": "Handles feedback according to its route: log and acknowledge, schedule review, open incident, or open governance item.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CAPTURE_OUTCOME", "REJECT"]
+    },
+
+    "CAPTURE_OUTCOME": {
+      "description": "Captures the outcome: acknowledged, action-planned, action-taken, escalated, or archived with rationale.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Feedback cycle complete. Record stored for learning, audit, and pattern analysis.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Feedback could not be processed due to missing or invalid data. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_CAPTURE_FEEDBACK": {
+      "from": "START",
+      "to": "CAPTURE_FEEDBACK",
+      "conditions": []
+    },
+
+    "CAPTURE_FEEDBACK_TO_CLASSIFY_FEEDBACK": {
+      "from": "CAPTURE_FEEDBACK",
+      "to": "CLASSIFY_FEEDBACK",
+      "conditions": ["feedback.captured"]
+    },
+
+    "CAPTURE_FEEDBACK_TO_REJECT": {
+      "from": "CAPTURE_FEEDBACK",
+      "to": "REJECT",
+      "conditions": ["feedback.missing"]
+    },
+
+    "CLASSIFY_FEEDBACK_TO_ROUTE_FEEDBACK": {
+      "from": "CLASSIFY_FEEDBACK",
+      "to": "ROUTE_FEEDBACK",
+      "conditions": ["feedback.classified"]
+    },
+
+    "CLASSIFY_FEEDBACK_TO_REJECT": {
+      "from": "CLASSIFY_FEEDBACK",
+      "to": "REJECT",
+      "conditions": ["feedback.classification_failed"]
+    },
+
+    "ROUTE_FEEDBACK_TO_HANDLE_FEEDBACK": {
+      "from": "ROUTE_FEEDBACK",
+      "to": "HANDLE_FEEDBACK",
+      "conditions": ["route.assigned"]
+    },
+
+    "ROUTE_FEEDBACK_TO_REJECT": {
+      "from": "ROUTE_FEEDBACK",
+      "to": "REJECT",
+      "conditions": ["route.assignment_failed"]
+    },
+
+    "HANDLE_FEEDBACK_TO_CAPTURE_OUTCOME": {
+      "from": "HANDLE_FEEDBACK",
+      "to": "CAPTURE_OUTCOME",
+      "conditions": ["handling.completed"]
+    },
+
+    "HANDLE_FEEDBACK_TO_REJECT": {
+      "from": "HANDLE_FEEDBACK",
+      "to": "REJECT",
+      "conditions": ["handling.failed"]
+    },
+
+    "CAPTURE_OUTCOME_TO_COMPLETE": {
+      "from": "CAPTURE_OUTCOME",
+      "to": "COMPLETE",
+      "conditions": ["outcome.recorded"]
+    },
+
+    "CAPTURE_OUTCOME_TO_REJECT": {
+      "from": "CAPTURE_OUTCOME",
+      "to": "REJECT",
+      "conditions": ["outcome.record_failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": false,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "community.feedback.captured",
+        "community.feedback.classified",
+        "community.feedback.routed",
+        "community.feedback.handled",
+        "community.feedback.outcome-recorded",
+        "community.feedback.complete",
+        "community.feedback.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "community",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Community Standard"
+  }
+}
