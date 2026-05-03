@@ -1,0 +1,110 @@
+{
+  "id": "audit.event-capture",
+  "version": "1.0.0",
+  "description": "Captures raw audit events from any system workflow, validates structure, enriches metadata, and forwards the event to the audit-log-entry pipeline.",
+  "domain": "audit",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered whenever a system component emits an audit event.",
+      "transitions": ["VALIDATE_EVENT"]
+    },
+
+    "VALIDATE_EVENT": {
+      "description": "Validates the incoming event structure against audit-metadata and audit-log-entry requirements.",
+      "validators": ["validator.audit"],
+      "transitions": ["ENRICH_METADATA", "REJECT"]
+    },
+
+    "ENRICH_METADATA": {
+      "description": "Adds system metadata including timestamps, actor identity, workflow context, environment, and hash preimage.",
+      "validators": ["validator.audit"],
+      "transitions": ["FORWARD_TO_LOG_ENTRY", "REJECT"]
+    },
+
+    "FORWARD_TO_LOG_ENTRY": {
+      "description": "Transforms the enriched event into a canonical audit-log-entry object and forwards it to the audit-log-entry workflow.",
+      "validators": ["validator.audit"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Event successfully captured and forwarded into the audit pipeline.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Event rejected due to invalid structure or missing required fields. Logged for administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_VALIDATE_EVENT": {
+      "from": "START",
+      "to": "VALIDATE_EVENT",
+      "conditions": []
+    },
+
+    "VALIDATE_EVENT_TO_ENRICH_METADATA": {
+      "from": "VALIDATE_EVENT",
+      "to": "ENRICH_METADATA",
+      "conditions": ["event.valid"]
+    },
+
+    "VALIDATE_EVENT_TO_REJECT": {
+      "from": "VALIDATE_EVENT",
+      "to": "REJECT",
+      "conditions": ["event.invalid"]
+    },
+
+    "ENRICH_METADATA_TO_FORWARD_TO_LOG_ENTRY": {
+      "from": "ENRICH_METADATA",
+      "to": "FORWARD_TO_LOG_ENTRY",
+      "conditions": ["metadata.enriched"]
+    },
+
+    "ENRICH_METADATA_TO_REJECT": {
+      "from": "ENRICH_METADATA",
+      "to": "REJECT",
+      "conditions": ["metadata.failed"]
+    },
+
+    "FORWARD_TO_LOG_ENTRY_TO_COMPLETE": {
+      "from": "FORWARD_TO_LOG_ENTRY",
+      "to": "COMPLETE",
+      "conditions": ["log_entry.forwarded"]
+    },
+
+    "FORWARD_TO_LOG_ENTRY_TO_REJECT": {
+      "from": "FORWARD_TO_LOG_ENTRY",
+      "to": "REJECT",
+      "conditions": ["log_entry.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "audit.event.received",
+        "audit.event.validated",
+        "audit.event.metadata-enriched",
+        "audit.event.forwarded",
+        "audit.event.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "audit",
+    "nextWorkflow": "audit-log-entry",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Audit Standard"
+  }
+}
