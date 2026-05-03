@@ -1,0 +1,140 @@
+{
+  "id": "event.state-machine",
+  "version": "1.0.0",
+  "description": "Deterministic state-machine governing all valid transitions in the event lifecycle. Enforces structural validity, metadata enrichment, audit logging, chain linkage, and archival integrity.",
+  "domain": "audit",
+  "lastUpdated": "2026-05-03",
+
+  "states": [
+    "CREATED",
+    "VALIDATION",
+    "ENRICHED",
+    "LOGGED",
+    "CHAINED",
+    "FINALIZED",
+    "ARCHIVED",
+    "REJECTED"
+  ],
+
+  "transitions": {
+    "CREATED": {
+      "allowed": ["VALIDATION", "REJECTED"],
+      "prohibited": ["ENRICHED", "LOGGED", "CHAINED", "FINALIZED", "ARCHIVED"],
+      "conditions": {
+        "VALIDATION": ["event.created"],
+        "REJECTED": ["event.malformed"]
+      }
+    },
+
+    "VALIDATION": {
+      "allowed": ["ENRICHED", "REJECTED"],
+      "prohibited": ["LOGGED", "CHAINED", "FINALIZED", "ARCHIVED"],
+      "conditions": {
+        "ENRICHED": ["event.valid"],
+        "REJECTED": ["event.invalid"]
+      }
+    },
+
+    "ENRICHED": {
+      "allowed": ["LOGGED", "REJECTED"],
+      "prohibited": ["CHAINED", "FINALIZED", "ARCHIVED"],
+      "conditions": {
+        "LOGGED": ["metadata.enriched"],
+        "REJECTED": ["metadata.failed"]
+      }
+    },
+
+    "LOGGED": {
+      "allowed": ["CHAINED", "REJECTED"],
+      "prohibited": ["FINALIZED", "ARCHIVED"],
+      "conditions": {
+        "CHAINED": ["log.entry_created"],
+        "REJECTED": ["log.failed"]
+      }
+    },
+
+    "CHAINED": {
+      "allowed": ["FINALIZED", "REJECTED"],
+      "prohibited": ["ARCHIVED"],
+      "conditions": {
+        "FINALIZED": ["chain.linked", "signature.applied"],
+        "REJECTED": ["chain.invalid"]
+      }
+    },
+
+    "FINALIZED": {
+      "allowed": ["ARCHIVED"],
+      "prohibited": ["CREATED", "VALIDATION", "ENRICHED", "LOGGED", "CHAINED", "REJECTED"],
+      "conditions": {
+        "ARCHIVED": ["event.sealed"]
+      }
+    },
+
+    "ARCHIVED": {
+      "allowed": [],
+      "prohibited": ["CREATED", "VALIDATION", "ENRICHED", "LOGGED", "CHAINED", "FINALIZED", "REJECTED"],
+      "conditions": {}
+    },
+
+    "REJECTED": {
+      "allowed": [],
+      "prohibited": ["CREATED", "VALIDATION", "ENRICHED", "LOGGED", "CHAINED", "FINALIZED", "ARCHIVED"],
+      "conditions": {}
+    }
+  },
+
+  "validators": {
+    "audit": [
+      "event.created",
+      "event.valid",
+      "event.invalid",
+      "metadata.enriched",
+      "metadata.failed",
+      "log.entry_created",
+      "log.failed",
+      "event.sealed"
+    ],
+    "crypto": [
+      "chain.linked",
+      "chain.invalid",
+      "signature.applied"
+    ]
+  },
+
+  "events": {
+    "onEnter": {
+      "CREATED": ["event.lifecycle.created"],
+      "VALIDATION": ["event.lifecycle.validation-started"],
+      "ENRICHED": ["event.lifecycle.enriched"],
+      "LOGGED": ["event.lifecycle.logged"],
+      "CHAINED": ["event.lifecycle.chained"],
+      "FINALIZED": ["event.lifecycle.finalized"],
+      "ARCHIVED": ["event.lifecycle.archived"],
+      "REJECTED": ["event.lifecycle.rejected"]
+    },
+    "onExit": {
+      "LOGGED": ["event.lifecycle.log-exit"],
+      "CHAINED": ["event.lifecycle.chain-exit"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "event.state.transition",
+        "event.state.invalid-transition",
+        "event.state-machine.violation"
+      ]
+    }
+  },
+
+  "metadata": {
+    "machineType": "deterministic",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Audit Standard"
+  }
+}
