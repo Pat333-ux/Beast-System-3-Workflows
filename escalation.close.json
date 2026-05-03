@@ -1,0 +1,128 @@
+{
+  "id": "escalation.close",
+  "version": "1.0.0",
+  "description": "Final closure workflow for escalated cases. Archives the case, finalizes directives, updates lifecycle status, and seals the record.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered after escalation.review is complete.",
+      "transitions": ["VERIFY_COMPLETENESS"]
+    },
+
+    "VERIFY_COMPLETENESS": {
+      "description": "Verifies that all review findings, directives, and interventions are fully completed.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ARCHIVE_CASE", "REJECT"]
+    },
+
+    "ARCHIVE_CASE": {
+      "description": "Archives the case, generates a final audit snapshot, and seals the record.",
+      "validators": ["validator.workflow"],
+      "transitions": ["UPDATE_LIFECYCLE", "REJECT"]
+    },
+
+    "UPDATE_LIFECYCLE": {
+      "description": "Updates the user's lifecycle status to reflect case closure and system reintegration.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ISSUE_CLOSURE_NOTICE", "REJECT"]
+    },
+
+    "ISSUE_CLOSURE_NOTICE": {
+      "description": "Issues a closure notice to relevant parties and logs the final event.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Case fully closed. No further action required.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Closure cannot proceed due to missing data or unresolved directives. Requires administrative intervention.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_VERIFY_COMPLETENESS": {
+      "from": "START",
+      "to": "VERIFY_COMPLETENESS",
+      "conditions": []
+    },
+
+    "VERIFY_COMPLETENESS_TO_ARCHIVE_CASE": {
+      "from": "VERIFY_COMPLETENESS",
+      "to": "ARCHIVE_CASE",
+      "conditions": ["review.complete", "directives.fulfilled"]
+    },
+
+    "VERIFY_COMPLETENESS_TO_REJECT": {
+      "from": "VERIFY_COMPLETENESS",
+      "to": "REJECT",
+      "conditions": ["review.incomplete", "directives.unfulfilled"]
+    },
+
+    "ARCHIVE_CASE_TO_UPDATE_LIFECYCLE": {
+      "from": "ARCHIVE_CASE",
+      "to": "UPDATE_LIFECYCLE",
+      "conditions": ["archive.success"]
+    },
+
+    "ARCHIVE_CASE_TO_REJECT": {
+      "from": "ARCHIVE_CASE",
+      "to": "REJECT",
+      "conditions": ["archive.failed"]
+    },
+
+    "UPDATE_LIFECYCLE_TO_ISSUE_CLOSURE_NOTICE": {
+      "from": "UPDATE_LIFECYCLE",
+      "to": "ISSUE_CLOSURE_NOTICE",
+      "conditions": ["lifecycle.updated"]
+    },
+
+    "UPDATE_LIFECYCLE_TO_REJECT": {
+      "from": "UPDATE_LIFECYCLE",
+      "to": "REJECT",
+      "conditions": ["lifecycle.update_failed"]
+    },
+
+    "ISSUE_CLOSURE_NOTICE_TO_COMPLETE": {
+      "from": "ISSUE_CLOSURE_NOTICE",
+      "to": "COMPLETE",
+      "conditions": ["notice.sent"]
+    },
+
+    "ISSUE_CLOSURE_NOTICE_TO_REJECT": {
+      "from": "ISSUE_CLOSURE_NOTICE",
+      "to": "REJECT",
+      "conditions": ["notice.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "standard"
+    },
+    "audit": {
+      "captureEvents": [
+        "escalation.close.verify-completeness",
+        "escalation.close.archived",
+        "escalation.close.lifecycle-updated",
+        "escalation.close.notice-issued",
+        "escalation.close.complete",
+        "escalation.close.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "closure",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
