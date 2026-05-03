@@ -1,0 +1,164 @@
+{
+  "id": "wellbeing.follow-up",
+  "version": "1.0.0",
+  "description": "Conducts structured follow-up after a support plan or intervention to ensure stability, evaluate outcomes, and detect early regression signals.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered after wellbeing.support-plan or a scheduled follow-up interval.",
+      "transitions": ["COLLECT_FOLLOWUP_DATA"]
+    },
+
+    "COLLECT_FOLLOWUP_DATA": {
+      "description": "Collects follow-up wellbeing indicators and user feedback across core domains.",
+      "validators": ["validator.workflow"],
+      "transitions": ["EVALUATE_PROGRESS", "REJECT"]
+    },
+
+    "EVALUATE_PROGRESS": {
+      "description": "Evaluates progress against the previous support plan, baseline, and recent signals.",
+      "validators": ["validator.score"],
+      "transitions": ["CHECK_STABILITY", "REJECT"]
+    },
+
+    "CHECK_STABILITY": {
+      "description": "Determines whether the user is stable, improving, plateauing, or regressing.",
+      "validators": ["validator.score"],
+      "transitions": ["RESOLVE", "REINFORCE_SUPPORT", "ESCALATE", "REJECT"]
+    },
+
+    "REINFORCE_SUPPORT": {
+      "description": "Provides additional supportive actions for users who are stable but still benefit from reinforcement.",
+      "validators": ["validator.workflow"],
+      "transitions": ["RESOLVE", "REJECT"]
+    },
+
+    "ESCALATE": {
+      "description": "Escalates to support-plan or wellbeing.assessment if regression or risk is detected.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE_ESCALATION", "REJECT"]
+    },
+
+    "COMPLETE_ESCALATION": {
+      "description": "Escalation completed. User is routed to the appropriate workflow.",
+      "terminal": true
+    },
+
+    "RESOLVE": {
+      "description": "Follow-up complete. User is stable and no further action is required.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Follow-up cannot proceed due to missing or invalid data. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_COLLECT_FOLLOWUP_DATA": {
+      "from": "START",
+      "to": "COLLECT_FOLLOWUP_DATA",
+      "conditions": []
+    },
+
+    "COLLECT_FOLLOWUP_DATA_TO_EVALUATE_PROGRESS": {
+      "from": "COLLECT_FOLLOWUP_DATA",
+      "to": "EVALUATE_PROGRESS",
+      "conditions": ["followup.data_collected"]
+    },
+
+    "COLLECT_FOLLOWUP_DATA_TO_REJECT": {
+      "from": "COLLECT_FOLLOWUP_DATA",
+      "to": "REJECT",
+      "conditions": ["followup.data_missing"]
+    },
+
+    "EVALUATE_PROGRESS_TO_CHECK_STABILITY": {
+      "from": "EVALUATE_PROGRESS",
+      "to": "CHECK_STABILITY",
+      "conditions": ["progress.evaluated"]
+    },
+
+    "EVALUATE_PROGRESS_TO_REJECT": {
+      "from": "EVALUATE_PROGRESS",
+      "to": "REJECT",
+      "conditions": ["progress.invalid"]
+    },
+
+    "CHECK_STABILITY_TO_RESOLVE": {
+      "from": "CHECK_STABILITY",
+      "to": "RESOLVE",
+      "conditions": ["stability.confirmed"]
+    },
+
+    "CHECK_STABILITY_TO_REINFORCE_SUPPORT": {
+      "from": "CHECK_STABILITY",
+      "to": "REINFORCE_SUPPORT",
+      "conditions": ["stability.partial"]
+    },
+
+    "CHECK_STABILITY_TO_ESCALATE": {
+      "from": "CHECK_STABILITY",
+      "to": "ESCALATE",
+      "conditions": ["stability.regression_detected"]
+    },
+
+    "CHECK_STABILITY_TO_REJECT": {
+      "from": "CHECK_STABILITY",
+      "to": "REJECT",
+      "conditions": ["stability.invalid"]
+    },
+
+    "REINFORCE_SUPPORT_TO_RESOLVE": {
+      "from": "REINFORCE_SUPPORT",
+      "to": "RESOLVE",
+      "conditions": ["reinforcement.completed"]
+    },
+
+    "REINFORCE_SUPPORT_TO_REJECT": {
+      "from": "REINFORCE_SUPPORT",
+      "to": "REJECT",
+      "conditions": ["reinforcement.failed"]
+    },
+
+    "ESCALATE_TO_COMPLETE_ESCALATION": {
+      "from": "ESCALATE",
+      "to": "COMPLETE_ESCALATION",
+      "conditions": ["escalation.routed"]
+    },
+
+    "ESCALATE_TO_REJECT": {
+      "from": "ESCALATE",
+      "to": "REJECT",
+      "conditions": ["escalation.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "wellbeing.followup.data-collected",
+        "wellbeing.followup.progress-evaluated",
+        "wellbeing.followup.stability-checked",
+        "wellbeing.followup.reinforced",
+        "wellbeing.followup.escalated",
+        "wellbeing.followup.resolved",
+        "wellbeing.followup.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "wellbeing",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Wellbeing Standard"
+  }
+}
