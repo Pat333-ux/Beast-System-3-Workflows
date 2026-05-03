@@ -1,0 +1,148 @@
+{
+  "id": "audit.corrective-action",
+  "version": "1.0.0",
+  "description": "Executes corrective and preventive actions (CAPA) for audit discrepancies, structural issues, hash mismatches, signature failures, and anchoring anomalies. Ensures chain integrity is restored and future occurrences are prevented.",
+  "domain": "audit",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when discrepancy review or chain validation identifies a repairable issue.",
+      "transitions": ["LOAD_CORRECTIVE_CONTEXT"]
+    },
+
+    "LOAD_CORRECTIVE_CONTEXT": {
+      "description": "Loads discrepancy details, affected entries, chain segments, and required corrective directives.",
+      "validators": ["validator.audit"],
+      "transitions": ["DETERMINE_ACTION_TYPE", "REJECT"]
+    },
+
+    "DETERMINE_ACTION_TYPE": {
+      "description": "Determines whether corrective action is structural repair, hash regeneration, signature renewal, re-anchoring, or metadata correction.",
+      "validators": ["validator.audit"],
+      "transitions": ["EXECUTE_CORRECTIVE_ACTION", "REJECT"]
+    },
+
+    "EXECUTE_CORRECTIVE_ACTION": {
+      "description": "Executes the corrective action using deterministic repair logic and cryptographic procedures.",
+      "validators": ["validator.crypto"],
+      "transitions": ["VERIFY_REPAIR", "REJECT"]
+    },
+
+    "VERIFY_REPAIR": {
+      "description": "Validates that the corrective action successfully restored integrity and consistency.",
+      "validators": ["validator.audit"],
+      "transitions": ["ISSUE_PREVENTIVE_ACTIONS", "REJECT"]
+    },
+
+    "ISSUE_PREVENTIVE_ACTIONS": {
+      "description": "Generates preventive actions to avoid recurrence, such as schema updates, validator adjustments, or workflow hardening.",
+      "validators": ["validator.audit"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Corrective and preventive actions successfully completed. Audit chain integrity restored.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Corrective action failed or context invalid. Requires administrative oversight.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_LOAD_CORRECTIVE_CONTEXT": {
+      "from": "START",
+      "to": "LOAD_CORRECTIVE_CONTEXT",
+      "conditions": []
+    },
+
+    "LOAD_CORRECTIVE_CONTEXT_TO_DETERMINE_ACTION_TYPE": {
+      "from": "LOAD_CORRECTIVE_CONTEXT",
+      "to": "DETERMINE_ACTION_TYPE",
+      "conditions": ["context.loaded"]
+    },
+
+    "LOAD_CORRECTIVE_CONTEXT_TO_REJECT": {
+      "from": "LOAD_CORRECTIVE_CONTEXT",
+      "to": "REJECT",
+      "conditions": ["context.load_failed"]
+    },
+
+    "DETERMINE_ACTION_TYPE_TO_EXECUTE_CORRECTIVE_ACTION": {
+      "from": "DETERMINE_ACTION_TYPE",
+      "to": "EXECUTE_CORRECTIVE_ACTION",
+      "conditions": ["action.valid"]
+    },
+
+    "DETERMINE_ACTION_TYPE_TO_REJECT": {
+      "from": "DETERMINE_ACTION_TYPE",
+      "to": "REJECT",
+      "conditions": ["action.invalid"]
+    },
+
+    "EXECUTE_CORRECTIVE_ACTION_TO_VERIFY_REPAIR": {
+      "from": "EXECUTE_CORRECTIVE_ACTION",
+      "to": "VERIFY_REPAIR",
+      "conditions": ["repair.executed"]
+    },
+
+    "EXECUTE_CORRECTIVE_ACTION_TO_REJECT": {
+      "from": "EXECUTE_CORRECTIVE_ACTION",
+      "to": "REJECT",
+      "conditions": ["repair.failed"]
+    },
+
+    "VERIFY_REPAIR_TO_ISSUE_PREVENTIVE_ACTIONS": {
+      "from": "VERIFY_REPAIR",
+      "to": "ISSUE_PREVENTIVE_ACTIONS",
+      "conditions": ["repair.validated"]
+    },
+
+    "VERIFY_REPAIR_TO_REJECT": {
+      "from": "VERIFY_REPAIR",
+      "to": "REJECT",
+      "conditions": ["repair.invalid"]
+    },
+
+    "ISSUE_PREVENTIVE_ACTIONS_TO_COMPLETE": {
+      "from": "ISSUE_PREVENTIVE_ACTIONS",
+      "to": "COMPLETE",
+      "conditions": ["preventive.issued"]
+    },
+
+    "ISSUE_PREVENTIVE_ACTIONS_TO_REJECT": {
+      "from": "ISSUE_PREVENTIVE_ACTIONS",
+      "to": "REJECT",
+      "conditions": ["preventive.failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "audit.corrective.context-loaded",
+        "audit.corrective.action-determined",
+        "audit.corrective.executed",
+        "audit.corrective.verified",
+        "audit.corrective.preventive-issued",
+        "audit.corrective.complete",
+        "audit.corrective.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "audit",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Audit Standard"
+  }
+}
