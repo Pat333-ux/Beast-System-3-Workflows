@@ -1,0 +1,202 @@
+{
+  "id": "policy.wellbeing",
+  "version": "1.0.0",
+  "description": "Global wellbeing policy for Beast System 3.0. Defines wellbeing domains, scoring standards, intervention principles, safeguards, routing, and audit requirements.",
+  "domain": "wellbeing",
+  "lastUpdated": "2026-05-03",
+
+  "principles": {
+    "nonPunitive": true,
+    "dignityPreserving": true,
+    "traumaPreventive": true,
+    "supportFirst": true,
+    "leastIntrusiveIntervention": true,
+    "evidenceBased": true,
+    "auditRequired": true,
+    "crossDomainConsistency": true
+  },
+
+  "wellbeingStandard": {
+    "version": "2026",
+    "domains": [
+      "housing",
+      "food_nutrition",
+      "health",
+      "mental_health",
+      "safety_nonviolence",
+      "dignity_rights",
+      "economic_stability",
+      "community_support",
+      "spiritual_support"
+    ],
+    "description": "Defines the measurable, citizen-centered wellbeing domains used across all workflows."
+  },
+
+  "scoring": {
+    "scale": {
+      "min": 0,
+      "max": 100,
+      "bands": {
+        "CRITICAL": { "min": 0, "max": 24 },
+        "UNSTABLE": { "min": 25, "max": 49 },
+        "VULNERABLE": { "min": 50, "max": 69 },
+        "STABLE": { "min": 70, "max": 84 },
+        "THRIVING": { "min": 85, "max": 100 }
+      }
+    },
+    "rules": {
+      "requiresValidator": "validator.score",
+      "requiresModel": "wellbeing.model",
+      "requiresSignalEngine": true,
+      "requiresPredictionLayer": true
+    }
+  },
+
+  "interventionLevels": {
+    "L0_INFORMATION": {
+      "description": "Light-touch informational support. No formal workflow.",
+      "criteria": ["score >= 70"],
+      "actions": ["resource_suggestions", "optional_check_in"],
+      "safeguards": ["no_pressure", "voluntary_only"]
+    },
+    "L1_SUPPORT_PLAN": {
+      "description": "Structured support plan for moderate needs.",
+      "criteria": ["score between 50 and 69"],
+      "actions": [
+        "support_plan_creation",
+        "referrals",
+        "scheduled_check_ins"
+      ],
+      "safeguards": [
+        "user_consent_required",
+        "no_punitive_language",
+        "clear_explanation_of_steps"
+      ]
+    },
+    "L2_STABILIZATION": {
+      "description": "Stabilization workflow for elevated risk.",
+      "criteria": ["score between 25 and 49"],
+      "actions": [
+        "stabilization_plan",
+        "increased_frequency_check_ins",
+        "multi_domain_support"
+      ],
+      "safeguards": [
+        "minimize_intrusion",
+        "respect_privacy",
+        "avoid_blame",
+        "ensure_user_voice"
+      ]
+    },
+    "L3_CRITICAL_INTERVENTION": {
+      "description": "Critical intervention for severe distress or unmet essential needs.",
+      "criteria": ["score < 25"],
+      "actions": [
+        "rapid_response_support",
+        "safety_planning",
+        "intensive_stabilization",
+        "cross_domain_coordination"
+      ],
+      "safeguards": [
+        "trauma_informed_communication",
+        "no_coercion",
+        "explain_every_step",
+        "limit_data_access_to_need_to_know"
+      ]
+    }
+  },
+
+  "triggers": {
+    "automatic": [
+      "wellbeing.risk_detected",
+      "prediction.risk_high",
+      "signal.threshold_exceeded"
+    ],
+    "manual": [
+      "user.request_support",
+      "steward.request_review",
+      "case.linked_to_wellbeing"
+    ]
+  },
+
+  "routing": {
+    "assessment": "wellbeing.assessment",
+    "supportPlan": "wellbeing.support-plan",
+    "stabilization": "wellbeing.stabilization",
+    "followUp": "wellbeing.follow-up",
+    "prediction": "prediction-input",
+    "signal": "wellbeing.signal"
+  },
+
+  "safeguards": {
+    "requiredForAll": [
+      "explain_purpose",
+      "avoid_punitive_language",
+      "respect_user_agency",
+      "document_rationale",
+      "log_to_audit_chain"
+    ],
+    "prohibited": [
+      "coercion",
+      "threats",
+      "punitive_actions",
+      "sharing_sensitive_data_unnecessarily",
+      "escalation_without_documented_reason"
+    ]
+  },
+
+  "integration": {
+    "lifecycleBindings": {
+      "wellbeing.assessment": ["COLLECT_INPUTS", "CALCULATE_SCORES", "CLASSIFY_STATUS"],
+      "wellbeing.support-plan": ["PLAN", "IMPLEMENT", "REVIEW"],
+      "wellbeing.stabilization": ["INITIATE", "STABILIZE", "VERIFY"],
+      "wellbeing.follow-up": ["CHECK_IN", "VERIFY_OUTCOME", "CLOSE"]
+    },
+    "stateMachineBindings": [
+      "wellbeing.assessment.state-machine",
+      "wellbeing.support-plan.state-machine",
+      "wellbeing.stabilization.state-machine",
+      "wellbeing.follow-up.state-machine"
+    ],
+    "validators": [
+      "validator.score",
+      "validator.workflow",
+      "validator.identity"
+    ]
+  },
+
+  "audit": {
+    "captureEvents": [
+      "wellbeing.assessment.started",
+      "wellbeing.assessment.completed",
+      "wellbeing.support_plan.created",
+      "wellbeing.stabilization.started",
+      "wellbeing.follow_up.completed",
+      "wellbeing.risk_detected",
+      "wellbeing.intervention_level_changed"
+    ],
+    "requiredFields": [
+      "wellbeing.id",
+      "user.id",
+      "score",
+      "domain_scores",
+      "intervention_level",
+      "timestamp",
+      "rationale"
+    ]
+  },
+
+  "invariants": {
+    "mustBeSupportive": true,
+    "mustBeNonPunitive": true,
+    "mustBeDignityPreserving": true,
+    "mustPreferLowerInterventionWhenAdequate": true,
+    "mustBeReviewable": true
+  },
+
+  "metadata": {
+    "policyType": "wellbeing",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Wellbeing Standard"
+  }
+}
