@@ -1,0 +1,147 @@
+{
+  "id": "community.interaction",
+  "version": "1.0.0",
+  "description": "Defines a structured, dignity-preserving workflow for community interactions, including requests, offers, conversations, and conflict-touch events. Ensures each interaction is logged, classified, and routed appropriately.",
+  "domain": "community",
+  "lastUpdated": "2026-05-03",
+
+  "states": {
+    "START": {
+      "description": "Workflow entry. Triggered when a community interaction is initiated by a member, steward, or system.",
+      "transitions": ["CAPTURE_CONTEXT"]
+    },
+
+    "CAPTURE_CONTEXT": {
+      "description": "Captures core interaction context: participants, channel, topic, intent (request, offer, support, feedback, conflict, informational).",
+      "validators": ["validator.workflow"],
+      "transitions": ["CLASSIFY_INTERACTION", "REJECT"]
+    },
+
+    "CLASSIFY_INTERACTION": {
+      "description": "Classifies interaction type and sensitivity: routine, supportive, sensitive, or high-risk.",
+      "validators": ["validator.workflow"],
+      "transitions": ["ROUTE_INTERACTION", "REJECT"]
+    },
+
+    "ROUTE_INTERACTION": {
+      "description": "Routes interaction to appropriate handling path: direct-resolution, support-referral, wellbeing-check, or escalation-review.",
+      "validators": ["validator.workflow"],
+      "transitions": ["HANDLE_INTERACTION", "REJECT"]
+    },
+
+    "HANDLE_INTERACTION": {
+      "description": "Handles the interaction according to its route: respond, connect to support, schedule follow-up, or initiate wellbeing/escalation workflows.",
+      "validators": ["validator.workflow"],
+      "transitions": ["CAPTURE_OUTCOME", "REJECT"]
+    },
+
+    "CAPTURE_OUTCOME": {
+      "description": "Captures the outcome: resolved, partially-resolved, deferred, referred, or escalated. Records any commitments or follow-up tasks.",
+      "validators": ["validator.workflow"],
+      "transitions": ["COMPLETE", "REJECT"]
+    },
+
+    "COMPLETE": {
+      "description": "Interaction complete. Context, handling, and outcome recorded for audit and wellbeing correlation.",
+      "terminal": true
+    },
+
+    "REJECT": {
+      "description": "Interaction could not be processed due to missing or invalid data. Requires administrative review.",
+      "terminal": true
+    }
+  },
+
+  "transitions": {
+    "START_TO_CAPTURE_CONTEXT": {
+      "from": "START",
+      "to": "CAPTURE_CONTEXT",
+      "conditions": []
+    },
+
+    "CAPTURE_CONTEXT_TO_CLASSIFY_INTERACTION": {
+      "from": "CAPTURE_CONTEXT",
+      "to": "CLASSIFY_INTERACTION",
+      "conditions": ["context.captured"]
+    },
+
+    "CAPTURE_CONTEXT_TO_REJECT": {
+      "from": "CAPTURE_CONTEXT",
+      "to": "REJECT",
+      "conditions": ["context.missing"]
+    },
+
+    "CLASSIFY_INTERACTION_TO_ROUTE_INTERACTION": {
+      "from": "CLASSIFY_INTERACTION",
+      "to": "ROUTE_INTERACTION",
+      "conditions": ["interaction.classified"]
+    },
+
+    "CLASSIFY_INTERACTION_TO_REJECT": {
+      "from": "CLASSIFY_INTERACTION",
+      "to": "REJECT",
+      "conditions": ["interaction.classification_failed"]
+    },
+
+    "ROUTE_INTERACTION_TO_HANDLE_INTERACTION": {
+      "from": "ROUTE_INTERACTION",
+      "to": "HANDLE_INTERACTION",
+      "conditions": ["route.assigned"]
+    },
+
+    "ROUTE_INTERACTION_TO_REJECT": {
+      "from": "ROUTE_INTERACTION",
+      "to": "REJECT",
+      "conditions": ["route.assignment_failed"]
+    },
+
+    "HANDLE_INTERACTION_TO_CAPTURE_OUTCOME": {
+      "from": "HANDLE_INTERACTION",
+      "to": "CAPTURE_OUTCOME",
+      "conditions": ["handling.completed"]
+    },
+
+    "HANDLE_INTERACTION_TO_REJECT": {
+      "from": "HANDLE_INTERACTION",
+      "to": "REJECT",
+      "conditions": ["handling.failed"]
+    },
+
+    "CAPTURE_OUTCOME_TO_COMPLETE": {
+      "from": "CAPTURE_OUTCOME",
+      "to": "COMPLETE",
+      "conditions": ["outcome.recorded"]
+    },
+
+    "CAPTURE_OUTCOME_TO_REJECT": {
+      "from": "CAPTURE_OUTCOME",
+      "to": "REJECT",
+      "conditions": ["outcome.record_failed"]
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresSession": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "community.interaction.context-captured",
+        "community.interaction.classified",
+        "community.interaction.routed",
+        "community.interaction.handled",
+        "community.interaction.outcome-recorded",
+        "community.interaction.complete",
+        "community.interaction.rejected"
+      ]
+    }
+  },
+
+  "metadata": {
+    "workflowType": "community",
+    "nextWorkflow": null,
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Community Standard"
+  }
+}
