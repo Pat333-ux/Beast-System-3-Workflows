@@ -1,0 +1,132 @@
+{
+  "id": "validator.workflow",
+  "version": "1.0.0",
+  "description": "Workflow validator for Beast System 3.0. Ensures structural integrity, state validity, transition correctness, rule compliance, and audit readiness for all workflow executions.",
+  "domain": "workflow",
+  "lastUpdated": "2026-05-03",
+
+  "validationGroups": {
+    "structure": {
+      "description": "Ensures workflow payload contains required fields and valid formats.",
+      "rules": [
+        {
+          "id": "workflow.required_fields",
+          "type": "required",
+          "fields": ["workflowId", "currentState", "payload", "timestamp"],
+          "error": "Missing required workflow fields."
+        },
+        {
+          "id": "workflow.state_valid",
+          "type": "enum",
+          "field": "currentState",
+          "allowedRef": "workflow.states",
+          "error": "Invalid workflow state."
+        }
+      ]
+    },
+
+    "transition": {
+      "description": "Ensures the requested transition is valid, allowed, and mapped correctly.",
+      "rules": [
+        {
+          "id": "workflow.transition_exists",
+          "type": "custom",
+          "handler": "workflowTransitionExistsCheck",
+          "error": "Requested transition does not exist."
+        },
+        {
+          "id": "workflow.transition_allowed",
+          "type": "custom",
+          "handler": "workflowTransitionAllowedCheck",
+          "error": "Transition not allowed from current state."
+        }
+      ]
+    },
+
+    "conditions": {
+      "description": "Ensures all mapped transition conditions are satisfied.",
+      "rules": [
+        {
+          "id": "workflow.conditions_satisfied",
+          "type": "custom",
+          "handler": "workflowConditionEvaluationCheck",
+          "error": "One or more transition conditions not satisfied."
+        }
+      ]
+    },
+
+    "consistency": {
+      "description": "Ensures workflow payload is consistent with lifecycle, state-machine, and domain rules.",
+      "rules": [
+        {
+          "id": "workflow.payload_schema_valid",
+          "type": "schema",
+          "schemaRef": "workflow.payload.schema",
+          "error": "Workflow payload schema invalid."
+        },
+        {
+          "id": "workflow.cross_domain_consistency",
+          "type": "custom",
+          "handler": "workflowCrossDomainConsistencyCheck",
+          "error": "Workflow payload inconsistent with domain rules."
+        }
+      ]
+    },
+
+    "safety": {
+      "description": "Ensures workflow does not violate safety, dignity, or non-punitive invariants.",
+      "rules": [
+        {
+          "id": "workflow.safety_invariants",
+          "type": "custom",
+          "handler": "workflowSafetyInvariantCheck",
+          "error": "Workflow violates safety or dignity invariants."
+        }
+      ]
+    }
+  },
+
+  "evaluation": {
+    "mode": "deterministic",
+    "order": [
+      "structure",
+      "transition",
+      "conditions",
+      "consistency",
+      "safety"
+    ],
+    "stopOnFailure": true
+  },
+
+  "outputs": {
+    "valid": {
+      "status": "VALID",
+      "emit": ["workflow.validated"]
+    },
+    "invalid": {
+      "status": "INVALID",
+      "emit": ["workflow.validation_failed"],
+      "includeErrors": true
+    }
+  },
+
+  "policies": {
+    "security": {
+      "requiresIdentityAnchor": true,
+      "logging": "enhanced"
+    },
+    "audit": {
+      "captureEvents": [
+        "workflow.validation.started",
+        "workflow.validation.completed",
+        "workflow.validation.failed"
+      ]
+    }
+  },
+
+  "metadata": {
+    "validatorType": "workflow",
+    "maintainer": "Beast System 3.0 — Governance Engine",
+    "compliance": "SAIA-Class S Workflow Standard"
+  }
+}
